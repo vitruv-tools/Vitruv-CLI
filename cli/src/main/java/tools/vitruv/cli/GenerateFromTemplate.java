@@ -89,6 +89,66 @@ public final class GenerateFromTemplate {
     writeTemplate(template, filePath, data);
   }
 
+  public static void generateP2WrappersPom(File filePath, String packageName) throws IOException {
+    Configuration cfg = getConfiguration();
+
+    Map<String, Object> data = new HashMap<>();
+    data.put("packageName", packageName.replaceAll("\\s", ""));
+
+    Template template = null;
+    try {
+      template = cfg.getTemplate("p2wrappersPom.ftl");
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+    writeTemplate(template, filePath, data);
+  }
+
+  public static void generateJavaUtilsPom(File filePath, String packageName) throws IOException {
+    Configuration cfg = getConfiguration();
+
+    Map<String, Object> data = new HashMap<>();
+    data.put("packageName", packageName.replaceAll("\\s", ""));
+
+    Template template = null;
+    try {
+      template = cfg.getTemplate("javautilsPom.ftl");
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+    writeTemplate(template, filePath, data);
+  }
+
+  public static void generateXAnnotationsPom(File filePath, String packageName) throws IOException {
+    Configuration cfg = getConfiguration();
+
+    Map<String, Object> data = new HashMap<>();
+    data.put("packageName", packageName.replaceAll("\\s", ""));
+
+    Template template = null;
+    try {
+      template = cfg.getTemplate("xannotationsPom.ftl");
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+    writeTemplate(template, filePath, data);
+  }
+
+  public static void generateEMFUtilsPom(File filePath, String packageName) throws IOException {
+    Configuration cfg = getConfiguration();
+
+    Map<String, Object> data = new HashMap<>();
+    data.put("packageName", packageName.replaceAll("\\s", ""));
+
+    Template template = null;
+    try {
+      template = cfg.getTemplate("emfutilsPom.ftl");
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+    writeTemplate(template, filePath, data);
+  }
+
   public static void generateVsumTest(File filePath, String packageName) throws IOException {
     Configuration cfg = getConfiguration();
 

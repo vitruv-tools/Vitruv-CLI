@@ -117,6 +117,26 @@ public class CLI {
         configuration.getPackageName());
     System.out.println("Generating vsum pom");
 
+    GenerateFromTemplate.generateP2WrappersPom(
+        new File((configuration.getLocalPath() + "/p2wrappers/pom.xml").replaceAll("\\s", "")),
+        configuration.getPackageName());
+    System.out.println("Generating p2wrappers pom");
+
+    GenerateFromTemplate.generateJavaUtilsPom(
+        new File((configuration.getLocalPath() + "/p2wrappers/javautils/pom.xml").replaceAll("\\s", "")),
+        configuration.getPackageName());
+    System.out.println("Generating p2wrappers javautils pom");
+
+    GenerateFromTemplate.generateXAnnotationsPom(
+        new File((configuration.getLocalPath() + "/p2wrappers/activextendannotations/pom.xml").replaceAll("\\s", "")),
+        configuration.getPackageName());
+    System.out.println("Generating p2wrappers xannotations pom");
+
+    GenerateFromTemplate.generateEMFUtilsPom(
+        new File((configuration.getLocalPath() + "/p2wrappers/emfutils/pom.xml").replaceAll("\\s", "")),
+        configuration.getPackageName());
+    System.out.println("Generating p2wrappers emf utils pom");
+
     GenerateFromTemplate.generateVsumExample(
         new File((configuration.getLocalPath() + "/vsum/src/main/java/VSUMExample.java").replaceAll("\\s", "")),
         configuration.getPackageName());
