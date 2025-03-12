@@ -13,8 +13,61 @@
 
   <artifactId>tools.vitruv.cli.cli</artifactId>
 
+
   <name>Vitruv command line interface</name>
   <description />
+
+  <build>
+    <resources>
+      <!-- regular resource processsing for everything except logback.xml -->
+      <resource>
+        <directory>src/main/resources</directory>
+      </resource>
+    </resources>
+    <defaultGoal>install</defaultGoal>
+    <plugins>
+      <plugin>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>2.3.2</version>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <version>2.3.1</version>
+        <configuration>
+          <archive>
+            <manifest>
+              <addClasspath>true</addClasspath>
+              <mainClass>tools.vitruv.cli.CLI</mainClass>
+            </manifest>
+          </archive>
+        </configuration>
+      </plugin>
+      <plugin>
+        <artifactId>maven-assembly-plugin</artifactId>
+        <configuration>
+          <descriptorRefs>
+            <descriptorRef>jar-with-dependencies</descriptorRef>
+          </descriptorRefs>
+          <archive>
+            <manifest>
+              <mainClass>tools.vitruv.cli.CLI</mainClass>
+            </manifest>
+          </archive>
+        </configuration>
+        <executions>
+          <execution>
+            <id>make-my-jar-with-dependencies</id>
+            <phase>package</phase>
+            <goals>
+              <goal>single</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+
 
   <dependencies>
     <!-- project dependencies -->
