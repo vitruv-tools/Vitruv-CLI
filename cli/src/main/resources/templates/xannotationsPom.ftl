@@ -8,14 +8,14 @@
   <parent>
     <groupId>tools.vitruv</groupId>
     <artifactId>${packageName}.p2wrappers</artifactId>
-    <version>3.2.0-SNAPSHOT</version>
+    <version>0.1.0-SNAPSHOT</version>
   </parent>
 
   <artifactId>${packageName}.p2wrappers.activextendannotations</artifactId>
 
   <name>p2 Dependency Wrapper Active Xtend Annotations</name>
   <description>wrapper for the p2 dependency xannotations:edu.kit.ipd.sdq.activextendannotations</description>
-<#noparse>
+  <#noparse>
   <build>
     <plugins>
       <plugin>
