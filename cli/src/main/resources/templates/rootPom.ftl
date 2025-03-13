@@ -27,6 +27,7 @@
     <module>model</module>
     <module>consistency</module>
     <module>vsum</module>
+    <module>p2wrappers</module>
   </modules>
 
   <properties>
