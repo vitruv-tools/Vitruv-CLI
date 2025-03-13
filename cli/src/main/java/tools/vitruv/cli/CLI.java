@@ -100,15 +100,57 @@ public class CLI {
     GenerateFromTemplate.generateRootPom(
         new File((configuration.getLocalPath() + "/pom.xml").replaceAll("\\s", "")),
         configuration.getPackageName());
+    System.out.println("Generating root pom");
+
     GenerateFromTemplate.generateConsistencyPom(
         new File((configuration.getLocalPath() + "/consistency/pom.xml").replaceAll("\\s", "")),
         configuration.getPackageName());
+    System.out.println("Generating consistency pom");
+
     GenerateFromTemplate.generateModelPom(
         new File((configuration.getLocalPath() + "/model/pom.xml").replaceAll("\\s", "")),
         configuration.getPackageName());
+    System.out.println("Generating model pom");
+
+    GenerateFromTemplate.generateVsumPom(
+        new File((configuration.getLocalPath() + "/vsum/pom.xml").replaceAll("\\s", "")),
+        configuration.getPackageName());
+    System.out.println("Generating vsum pom");
+
+    GenerateFromTemplate.generateP2WrappersPom(
+        new File((configuration.getLocalPath() + "/p2wrappers/pom.xml").replaceAll("\\s", "")),
+        configuration.getPackageName());
+    System.out.println("Generating p2wrappers pom");
+
+    GenerateFromTemplate.generateJavaUtilsPom(
+        new File((configuration.getLocalPath() + "/p2wrappers/javautils/pom.xml").replaceAll("\\s", "")),
+        configuration.getPackageName());
+    System.out.println("Generating p2wrappers javautils pom");
+
+    GenerateFromTemplate.generateXAnnotationsPom(
+        new File((configuration.getLocalPath() + "/p2wrappers/activextendannotations/pom.xml").replaceAll("\\s", "")),
+        configuration.getPackageName());
+    System.out.println("Generating p2wrappers xannotations pom");
+
+    GenerateFromTemplate.generateEMFUtilsPom(
+        new File((configuration.getLocalPath() + "/p2wrappers/emfutils/pom.xml").replaceAll("\\s", "")),
+        configuration.getPackageName());
+    System.out.println("Generating p2wrappers emf utils pom");
+
+    GenerateFromTemplate.generateVsumExample(
+        new File((configuration.getLocalPath() + "/vsum/src/main/java/VSUMExample.java").replaceAll("\\s", "")),
+        configuration.getPackageName());
+    System.out.println("Generating vsum example java class");
+
+    GenerateFromTemplate.generateVsumTest(
+        new File((configuration.getLocalPath() + "/vsum/src/test/java/VSUMExampleTest.java").replaceAll("\\s", "")),
+        configuration.getPackageName());
+    System.out.println("Generating vsum example test java class");
+
     GenerateFromTemplate.generateProjectFile(
         new File((configuration.getLocalPath() + "/model/.project").replaceAll("\\s", "")),
         configuration.getPackageName());
+    System.out.println("Generating project file");
     File workflow = new File(
         (configuration.getLocalPath() + "/model/workflow/generate.mwe2").replaceAll("\\s", ""));
     configuration.setWorkflow(workflow);

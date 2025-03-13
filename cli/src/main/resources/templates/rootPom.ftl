@@ -26,6 +26,7 @@
     <!-- <module>vsum</module> -->
     <module>model</module>
     <module>consistency</module>
+    <module>vsum</module>
   </modules>
 
   <properties>
@@ -89,8 +90,8 @@
       </dependency>
       <dependency>
         <groupId>org.junit.jupiter</groupId>
-        <artifactId>junit-jupiter</artifactId>
-        <version>5.10.1</version>
+        <artifactId>junit-jupiter-api</artifactId>
+        <version>5.12.0</version>
       </dependency>
     </dependencies>
   </dependencyManagement>
