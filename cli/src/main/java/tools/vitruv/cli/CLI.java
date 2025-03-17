@@ -18,12 +18,28 @@ import tools.vitruv.cli.options.UserInteractorOption;
 import tools.vitruv.cli.options.VitruvCLIOption;
 import tools.vitruv.framework.vsum.VirtualModelBuilder;
 
+/**
+ * The CLI class is the main entry point for the command line interface of the Vitruv framework. It
+ * parses the command line arguments and triggers the generation of the necessary files and the
+ * build of the project.
+ */
 public class CLI {
 
+  /**
+   * The main method of the CLI class. It parses the command line arguments and triggers the
+   *
+   * @param args The command line arguments.
+   */
   public static void main(String[] args) {
     new CLI().parseCLI(args);
   }
 
+  /**
+   * Parses the command line arguments and triggers the generation of the necessary files and the
+   * build of the project.
+   *
+   * @param args The command line arguments.
+   */
   public void parseCLI(String[] args) {
     Options options = new Options();
     options.addOption(new MetamodelOption());
