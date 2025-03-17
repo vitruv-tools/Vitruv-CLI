@@ -1,5 +1,9 @@
 package tools.vitruv.cli;
 
+import freemarker.template.Configuration;
+import freemarker.template.Template;
+import freemarker.template.TemplateException;
+import freemarker.template.TemplateExceptionHandler;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -8,30 +12,24 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import freemarker.template.Configuration;
-import freemarker.template.Template;
-import freemarker.template.TemplateException;
-import freemarker.template.TemplateExceptionHandler;
 import tools.vitruv.cli.configuration.MetamodelLocation;
 import tools.vitruv.cli.configuration.VitruvConfiguration;
 import tools.vitruv.cli.options.FileUtils;
 
-public final class GenerateFromTemplate {
-  private GenerateFromTemplate() {
-  }
+public class GenerateFromTemplate {
+  public GenerateFromTemplate() {}
 
-  private static Configuration getConfiguration() throws IOException {
+  private Configuration getConfiguration() throws IOException {
     Configuration cfg = new Configuration(Configuration.VERSION_2_3_31);
     cfg.setDefaultEncoding("UTF-8");
-    cfg.setDirectoryForTemplateLoading(new File("src/main/resources/templates"));
+    cfg.setClassForTemplateLoading(this.getClass(), "/templates");
     cfg.setTemplateExceptionHandler(TemplateExceptionHandler.RETHROW_HANDLER);
     cfg.setLogTemplateExceptions(false);
     cfg.setWrapUncheckedExceptions(true);
     return cfg;
   }
 
-  private static void writeTemplate(Template template, File filePath, Map<String, Object> data)
+  private void writeTemplate(Template template, File filePath, Map<String, Object> data)
       throws IOException {
     FileUtils.createFile(filePath.getAbsolutePath());
     // Write output to file
@@ -44,7 +42,7 @@ public final class GenerateFromTemplate {
     }
   }
 
-  public static void generateRootPom(File filePath, String packageName) throws IOException {
+  public void generateRootPom(File filePath, String packageName) throws IOException {
     Configuration cfg = getConfiguration();
 
     Map<String, Object> data = new HashMap<>();
@@ -59,7 +57,7 @@ public final class GenerateFromTemplate {
     writeTemplate(template, filePath, data);
   }
 
-  public static void generateVsumPom(File filePath, String packageName) throws IOException {
+  public void generateVsumPom(File filePath, String packageName) throws IOException {
     Configuration cfg = getConfiguration();
 
     Map<String, Object> data = new HashMap<>();
@@ -74,7 +72,7 @@ public final class GenerateFromTemplate {
     writeTemplate(template, filePath, data);
   }
 
-  public static void generateVsumExample(File filePath, String packageName) throws IOException {
+  public void generateVsumExample(File filePath, String packageName) throws IOException {
     Configuration cfg = getConfiguration();
 
     Map<String, Object> data = new HashMap<>();
@@ -89,7 +87,7 @@ public final class GenerateFromTemplate {
     writeTemplate(template, filePath, data);
   }
 
-  public static void generateP2WrappersPom(File filePath, String packageName) throws IOException {
+  public void generateP2WrappersPom(File filePath, String packageName) throws IOException {
     Configuration cfg = getConfiguration();
 
     Map<String, Object> data = new HashMap<>();
@@ -104,7 +102,7 @@ public final class GenerateFromTemplate {
     writeTemplate(template, filePath, data);
   }
 
-  public static void generateJavaUtilsPom(File filePath, String packageName) throws IOException {
+  public void generateJavaUtilsPom(File filePath, String packageName) throws IOException {
     Configuration cfg = getConfiguration();
 
     Map<String, Object> data = new HashMap<>();
@@ -119,7 +117,7 @@ public final class GenerateFromTemplate {
     writeTemplate(template, filePath, data);
   }
 
-  public static void generateXAnnotationsPom(File filePath, String packageName) throws IOException {
+  public void generateXAnnotationsPom(File filePath, String packageName) throws IOException {
     Configuration cfg = getConfiguration();
 
     Map<String, Object> data = new HashMap<>();
@@ -134,7 +132,7 @@ public final class GenerateFromTemplate {
     writeTemplate(template, filePath, data);
   }
 
-  public static void generateEMFUtilsPom(File filePath, String packageName) throws IOException {
+  public void generateEMFUtilsPom(File filePath, String packageName) throws IOException {
     Configuration cfg = getConfiguration();
 
     Map<String, Object> data = new HashMap<>();
@@ -149,7 +147,7 @@ public final class GenerateFromTemplate {
     writeTemplate(template, filePath, data);
   }
 
-  public static void generateVsumTest(File filePath, String packageName) throws IOException {
+  public void generateVsumTest(File filePath, String packageName) throws IOException {
     Configuration cfg = getConfiguration();
 
     Map<String, Object> data = new HashMap<>();
@@ -164,7 +162,7 @@ public final class GenerateFromTemplate {
     writeTemplate(template, filePath, data);
   }
 
-  public static void generateProjectFile(File filePath, String packageName) throws IOException {
+  public void generateProjectFile(File filePath, String packageName) throws IOException {
     Configuration cfg = getConfiguration();
 
     Map<String, Object> data = new HashMap<>();
@@ -179,7 +177,7 @@ public final class GenerateFromTemplate {
     writeTemplate(template, filePath, data);
   }
 
-  public static void generateModelPom(File filePath, String packageName) throws IOException {
+  public void generateModelPom(File filePath, String packageName) throws IOException {
     Configuration cfg = getConfiguration();
 
     Map<String, Object> data = new HashMap<>();
@@ -194,7 +192,7 @@ public final class GenerateFromTemplate {
     writeTemplate(template, filePath, data);
   }
 
-  public static void generateConsistencyPom(File filePath, String packageName) throws IOException {
+  public void generateConsistencyPom(File filePath, String packageName) throws IOException {
     Configuration cfg = getConfiguration();
 
     Map<String, Object> data = new HashMap<>();
@@ -209,7 +207,7 @@ public final class GenerateFromTemplate {
     writeTemplate(template, filePath, data);
   }
 
-  public static void generateMwe2(
+  public void generateMwe2(
       File filePath, List<MetamodelLocation> models, VitruvConfiguration config)
       throws IOException {
 
@@ -222,7 +220,8 @@ public final class GenerateFromTemplate {
               config.getLocalPath().toString().replaceAll("\\s", ""),
               "modelName",
               model.genmodel().getName(),
-              "packageName", config.getPackageName().replaceAll("\\s", "").concat(".model")));
+              "packageName",
+              config.getPackageName().replaceAll("\\s", "").concat(".model")));
     }
     // Load template
     Template template = null;
@@ -237,7 +236,7 @@ public final class GenerateFromTemplate {
     writeTemplate(template, filePath, data);
   }
 
-  public static void generatePlugin(
+  public void generatePlugin(
       File filePath, VitruvConfiguration config, List<MetamodelLocation> models)
       throws IOException {
     Configuration cfg = getConfiguration();
