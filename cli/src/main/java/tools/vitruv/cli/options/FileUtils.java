@@ -9,37 +9,51 @@ import java.nio.file.StandardCopyOption;
 import java.util.Enumeration;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
-
 import tools.vitruv.cli.configuration.CustomClassLoader;
 
+/** The FileUtils class provides utility methods for file operations. */
 public final class FileUtils {
 
-  public static final CustomClassLoader CLASS_LOADER = new CustomClassLoader(new URL[] {},
-      FileUtils.class.getClassLoader().getSystemClassLoader());
+  /**
+   * The CLASS_LOADER is used to load classes from JAR files at runtime. It is used to load the
+   * classes of the virtual model builder.
+   */
+  public static final CustomClassLoader CLASS_LOADER =
+      new CustomClassLoader(new URL[] {}, FileUtils.class.getClassLoader().getSystemClassLoader());
 
+  /**
+   * Copy a file to a new location.
+   *
+   * @param filePath The path of the file that should be copied.
+   * @param folderPath The path of the folder to which the file should be copied.
+   * @param relativeSubfolder The relative subfolder in which the file should be copied.
+   * @return The target file.
+   */
   public static File copyFile(String filePath, Path folderPath, String relativeSubfolder) {
     File source;
     File target;
     if (new File(filePath).isAbsolute()) {
       source = Path.of(filePath).toFile();
     } else {
-      source = Path.of(
-          new File("").getAbsolutePath().replaceAll("\\s", "")
-              + "/"
-              + filePath.replaceAll("\\s", ""))
-          .toFile();
+      source =
+          Path.of(
+                  new File("").getAbsolutePath().replaceAll("\\s", "")
+                      + "/"
+                      + filePath.replaceAll("\\s", ""))
+              .toFile();
     }
     if (folderPath.isAbsolute()) {
       target = folderPath.toFile();
     } else {
-      target = Path.of(
-          new File("").getAbsolutePath().replaceAll("\\s", "")
-              + "/"
-              + folderPath.toString().replaceAll("\\s", "")
-              + "/"
-              + relativeSubfolder
-              + source.getName().replaceAll("\\s", ""))
-          .toFile();
+      target =
+          Path.of(
+                  new File("").getAbsolutePath().replaceAll("\\s", "")
+                      + "/"
+                      + folderPath.toString().replaceAll("\\s", "")
+                      + "/"
+                      + relativeSubfolder
+                      + source.getName().replaceAll("\\s", ""))
+              .toFile();
     }
     // Files.copy throws a misleading Exception if the target File and/or the
     // folders of the target file are not existing.
@@ -55,6 +69,11 @@ public final class FileUtils {
     return target;
   }
 
+  /**
+   * Create a new file in the given path.
+   *
+   * @param filePath The path of the file that should be created.
+   */
   public static void createFile(String filePath) {
     File file = new File(filePath);
     try {
@@ -75,6 +94,13 @@ public final class FileUtils {
     }
   }
 
+  /**
+   * Create a new folder in the given path.
+   *
+   * @param path The path of the folder that should be created.
+   * @param folder The name of the folder that should be created.
+   * @return The created folder.
+   */
   public static Path createNewFolder(Path path, String folder) {
     Path folderPath = Path.of(path.toString() + "/" + folder);
     File file = folderPath.toFile();
@@ -99,6 +125,11 @@ public final class FileUtils {
     throw new IllegalArgumentException("Option: " + option + "not found in given file!");
   }
 
+  /**
+   * Adding Jar to a class path.
+   *
+   * @param jarPath The path of the JAR file that should be added to the class path.
+   */
   public static void addJarToClassPath(String jarPath) {
     try {
       URL jarUrl = new URL("file:///" + jarPath);
@@ -131,6 +162,5 @@ public final class FileUtils {
     } catch (IOException e) {
       e.printStackTrace();
     }
-
   }
 }
