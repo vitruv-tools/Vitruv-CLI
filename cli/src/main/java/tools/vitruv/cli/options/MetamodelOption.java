@@ -11,6 +11,7 @@ import java.util.StringJoiner;
 import java.util.stream.IntStream;
 
 import org.apache.commons.cli.CommandLine;
+import org.eclipse.emf.codegen.ecore.genmodel.GenModel;
 import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.resource.Resource;
@@ -49,6 +50,8 @@ public class MetamodelOption extends VitruvCLIOption {
       CommandLine cmd, VirtualModelBuilder builder, VitruvConfiguration configuration) {
     template(cmd.getOptionValue(getOpt()).split(";").length, configuration);
     for (String modelPaths : cmd.getOptionValue(getOpt()).split(";")) {
+      String nsUri = "";
+      String modelDirectory = "";
       String metamodelPath = modelPaths.split(",")[0];
       String genmodelPath = modelPaths.split(",")[1];
       File metamodel = FileUtils.copyFile(metamodelPath, getPath(cmd, builder), SUBFOLDER);
@@ -61,9 +64,16 @@ public class MetamodelOption extends VitruvCLIOption {
       Resource resource = resourceSet.getResource(uri, true);
       if (!resource.getContents().isEmpty() && resource.getContents().get(0) instanceof EPackage) {
         EPackage ePackage = (EPackage) resource.getContents().get(0);
-        configuration.addMetamodelLocations(
-            new MetamodelLocation(metamodel, genmodel, ePackage.getNsURI()));
+        nsUri = ePackage.getNsURI();
+
       }
+      if (!resource.getContents().isEmpty() && resource.getContents().get(0) instanceof GenModel) {
+        GenModel genModel = (GenModel) resource.getContents().get(0);
+        modelDirectory = genModel.getModelDirectory();
+
+      }
+      configuration.addMetamodelLocations(
+          new MetamodelLocation(metamodel, genmodel, nsUri, modelDirectory));
     }
     return builder;
   }
