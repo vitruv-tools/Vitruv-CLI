@@ -11,25 +11,37 @@ import tools.vitruv.framework.views.CommittableView;
 import tools.vitruv.framework.views.View;
 import tools.vitruv.framework.views.ViewTypeFactory;
 import tools.vitruv.framework.vsum.VirtualModel;
+import tools.vitruv.framework.remote.server.*;
+import java.util.Scanner;
+import java.io.IOException;
 
 /**
  * This class provides an example how to define and use a VSUM.
  */
 public class VSUMExample {
   public static void main(String[] args) {
-    VirtualModel vsum = createDefaultVirtualModel();
-    CommittableView view = getDefaultView(vsum).withChangeDerivingTrait();
-    modifyView(view, (CommittableView v) -> {
-      v.getRootObjects().add(ModelFactory.eINSTANCE.createSystem());
-    });
+    try {
+      VitruvServer server = new VitruvServer(VSUMExample::createDefaultVirtualModel);
+      server.start();
+      Scanner scanner = new Scanner(System.in);
+      while (!scanner.nextLine().equals("quit")) {
+        
+      }
+      scanner.close();
+      server.stop();
+    } catch (IOException e) {
+      System.out.println("Something went wrong " + e);
+    }
   }
 
   private static VirtualModel createDefaultVirtualModel() {
-    return new VirtualModelBuilder()
+    VirtualModel model = new VirtualModelBuilder()
         .withStorageFolder(Path.of("vsumexample"))
         .withUserInteractorForResultProvider(new TestUserInteraction.ResultProvider(new TestUserInteraction()))
         .withChangePropagationSpecifications(new Model2Model2ChangePropagationSpecification())
         .buildAndInitialize();
+      getDefaultView(model);
+      return model;
   }
 
   private static View getDefaultView(VirtualModel vsum) {
