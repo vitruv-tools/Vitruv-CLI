@@ -4,6 +4,7 @@ import java.io.File;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+
 import org.eclipse.emf.codegen.ecore.genmodel.GenModel;
 import org.eclipse.emf.codegen.ecore.genmodel.GenModelPackage;
 import org.eclipse.emf.common.util.URI;
@@ -13,7 +14,10 @@ import org.eclipse.emf.ecore.resource.ResourceSet;
 import org.eclipse.emf.ecore.resource.impl.ResourceSetImpl;
 import org.eclipse.emf.ecore.xmi.impl.XMIResourceFactoryImpl;
 
-/** The VitruvConfiguration class is used to store the configuration of the Vitruv CLI. */
+/**
+ * The VitruvConfiguration class is used to store the configuration of the
+ * Vitruv CLI.
+ */
 public class VitruvConfiguration {
   private Path localPath;
   private String packageName;
@@ -42,13 +46,15 @@ public class VitruvConfiguration {
    * Adds a metamodel location to the configuration.
    *
    * @param metamodelLocations The metamodel location to add.
-   * @return True if the metamodel location was added successfully, false otherwise.
+   * @return True if the metamodel location was added successfully, false
+   *         otherwise.
    */
   public boolean addMetamodelLocations(MetamodelLocation metamodelLocations) {
     return this.metamodelLocations.add(metamodelLocations);
   }
 
   private File workflow;
+  private String modelDirectory;
 
   /**
    * Returns the workflow of the configuration.
@@ -75,6 +81,7 @@ public class VitruvConfiguration {
    */
   public void setMetaModelLocations(String paths) {
     // Register the GenModel resource factory
+    String nsUri = "";
     Resource.Factory.Registry reg = Resource.Factory.Registry.INSTANCE;
     reg.getExtensionToFactoryMap().put("ecore", new XMIResourceFactoryImpl());
     reg.getExtensionToFactoryMap().put("genmodel", new XMIResourceFactoryImpl());
@@ -87,6 +94,7 @@ public class VitruvConfiguration {
       String genmodelPath = modelPaths.split(",")[1];
       File metamodel = new File(metamodelPath);
       File genmodel = new File(genmodelPath);
+      String modelDirectory = "";
 
       // getting the URI from the genmodels
       ResourceSet resourceSet = new ResourceSetImpl();
@@ -94,8 +102,7 @@ public class VitruvConfiguration {
       Resource resource = resourceSet.getResource(uri, true);
       if (!resource.getContents().isEmpty() && resource.getContents().get(0) instanceof EPackage) {
         EPackage ePackage = (EPackage) resource.getContents().get(0);
-        this.addMetamodelLocations(new MetamodelLocation(metamodel, genmodel, ePackage.getNsURI()));
-
+        nsUri = ePackage.getNsURI();
         // Load the GenModel to get the modelPluginID
         URI genmodelURI = URI.createFileURI(genmodel.getAbsolutePath());
         Resource genmodelResource = resourceSet.getResource(genmodelURI, true);
@@ -105,8 +112,11 @@ public class VitruvConfiguration {
           String packageString = removeLastSegment(genModel.getModelPluginID());
           System.out.println("--------------------->>>>  " + packageString);
           this.setPackageName(packageString);
+          modelDirectory = genModel.getModelDirectory();
         }
       }
+
+      this.addMetamodelLocations(new MetamodelLocation(metamodel, genmodel, nsUri, modelDirectory));
     }
   }
 
@@ -151,4 +161,5 @@ public class VitruvConfiguration {
   public void setPackageName(String packageName) {
     this.packageName = packageName.replace("\\s", "");
   }
+
 }
