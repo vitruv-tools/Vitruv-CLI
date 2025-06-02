@@ -9,7 +9,7 @@
   <parent>
     <groupId>tools.vitruv</groupId>
     <artifactId>parent</artifactId>
-    <version>3.0.7</version>
+    <version>3.2.0</version>
   </parent>
 
   <!-- Project Information -->
@@ -82,12 +82,12 @@
       <dependency>
         <groupId>org.eclipse.emf</groupId>
         <artifactId>org.eclipse.emf.common</artifactId>
-        <version>2.40.0</version>
+        <version>2.42.0</version>
       </dependency>
       <dependency>
         <groupId>org.eclipse.emf</groupId>
         <artifactId>org.eclipse.emf.ecore</artifactId>
-        <version>2.38.0</version>
+        <version>2.39.0</version>
       </dependency>
       <dependency>
         <groupId>org.junit.jupiter</groupId>
