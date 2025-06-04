@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.Map;
 import tools.vitruv.cli.configuration.MetamodelLocation;
 import tools.vitruv.cli.configuration.VitruvConfiguration;
+import tools.vitruv.cli.exceptions.MissingModelException;
 import tools.vitruv.cli.options.FileUtils;
 
 /** This class is responsible for generating files from templates. */
@@ -50,8 +51,14 @@ public class GenerateFromTemplate {
    * @param filePath The file path to write the root pom file to.
    * @param packageName The package name from the genmodel.
    * @throws IOException If the file cannot be written.
+   * @throws MissingModelException If the package name is missing.
    */
-  public void generateRootPom(File filePath, String packageName) throws IOException {
+  public void generateRootPom(File filePath, String packageName)
+      throws IOException, MissingModelException {
+
+    if (packageName == null || packageName.isEmpty()) {
+      throw new MissingModelException("-m ModelOption is missing the PackageName");
+    }
     Configuration cfg = getConfiguration();
 
     Map<String, Object> data = new HashMap<>();
