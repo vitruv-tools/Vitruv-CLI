@@ -1,0 +1,1 @@
+mvn clean verify && java -jar .\cli\target\internal\vsum\target\tools.vitruv.methodologisttemplate.vsum-0.1.0-SNAPSHOT-jar-with-dependencies.jar

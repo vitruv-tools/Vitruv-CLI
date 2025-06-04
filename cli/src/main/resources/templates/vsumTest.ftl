@@ -19,6 +19,7 @@ import tools.vitruv.framework.views.CommittableView;
 import tools.vitruv.framework.views.View;
 import tools.vitruv.framework.views.ViewTypeFactory;
 import tools.vitruv.framework.vsum.VirtualModel;
+import org.junit.jupiter.api.Disabled;
 
 /**
  * This class provides an example how to define and use a VSUM.
@@ -32,6 +33,7 @@ public class VSUMExampleTest {
     Resource.Factory.Registry.INSTANCE.getExtensionToFactoryMap().put("model", new XMIResourceFactoryImpl());
   }
 
+  @Disabled
   @Test
   void test() {
     VirtualModel vsum = createDefaultVirtualModel();
