@@ -111,7 +111,7 @@ public final class FileUtils {
    * @return The created folder.
    */
   public static Path createNewFolder(Path path, String folder) {
-    Path folderPath = Path.of(path.toString() + "/" + folder);
+    Path folderPath = path.resolve(folder);
     File file = folderPath.toFile();
     if (file.mkdirs()) {
       logger.info("Directory created: " + file.getAbsolutePath());
