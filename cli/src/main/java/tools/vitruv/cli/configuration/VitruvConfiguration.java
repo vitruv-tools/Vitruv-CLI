@@ -4,6 +4,8 @@ import java.io.File;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Logger;
+
 import org.eclipse.emf.codegen.ecore.genmodel.GenModel;
 import org.eclipse.emf.codegen.ecore.genmodel.GenModelPackage;
 import org.eclipse.emf.common.util.URI;
@@ -20,6 +22,8 @@ import org.eclipse.emf.ecore.xmi.impl.XMIResourceFactoryImpl;
 public class VitruvConfiguration {
   private Path localPath;
   private String packageName;
+  
+  private static final Logger logger = Logger.getLogger(VitruvConfiguration.class.getName());
 
   /**
    * Returns the local path of the configuration.
@@ -104,7 +108,7 @@ public class VitruvConfiguration {
         if (!genmodelResource.getContents().isEmpty()
             && genmodelResource.getContents().get(0) instanceof GenModel genModel) {
           String packageString = removeLastSegment(genModel.getModelPluginID());
-          System.out.println("--------------------->>>>  " + packageString);
+          logger.info("--------------------->>>>  " + packageString);
           this.setPackageName(packageString);
         }
       }
