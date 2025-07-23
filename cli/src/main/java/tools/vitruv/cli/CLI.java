@@ -120,6 +120,9 @@ public class CLI {
     } catch (ParseException exp) {
       LOGGER.info("Parsing failed.  Reason: " + exp.getMessage());
     } catch (IOException | InterruptedException e) {
+      if (e instanceof InterruptedException) {
+        Thread.currentThread().interrupt();
+      }
       LOGGER.info("Invoking maven to build the project failed.  Reason: " + e.getMessage());
     }
   }
