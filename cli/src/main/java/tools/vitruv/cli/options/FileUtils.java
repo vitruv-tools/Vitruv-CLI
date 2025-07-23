@@ -23,7 +23,7 @@ public final class FileUtils {
    * classes of the virtual model builder.
    */
   public static final CustomClassLoader CLASS_LOADER =
-      new CustomClassLoader(new URL[] {}, FileUtils.class.getClassLoader().getSystemClassLoader());
+      new CustomClassLoader(new URL[] {}, ClassLoader.getSystemClassLoader());
 
   /**
    * Copy a file to a new location.
