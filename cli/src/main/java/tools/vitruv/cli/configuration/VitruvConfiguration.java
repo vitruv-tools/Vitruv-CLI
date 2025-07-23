@@ -102,8 +102,7 @@ public class VitruvConfiguration {
         URI genmodelURI = URI.createFileURI(genmodel.getAbsolutePath());
         Resource genmodelResource = resourceSet.getResource(genmodelURI, true);
         if (!genmodelResource.getContents().isEmpty()
-            && genmodelResource.getContents().get(0) instanceof GenModel) {
-          GenModel genModel = (GenModel) genmodelResource.getContents().get(0);
+            && genmodelResource.getContents().get(0) instanceof GenModel genModel) {
           String packageString = removeLastSegment(genModel.getModelPluginID());
           System.out.println("--------------------->>>>  " + packageString);
           this.setPackageName(packageString);
