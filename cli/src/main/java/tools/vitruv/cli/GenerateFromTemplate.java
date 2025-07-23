@@ -12,12 +12,16 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Logger;
+
 import tools.vitruv.cli.configuration.MetamodelLocation;
 import tools.vitruv.cli.configuration.VitruvConfiguration;
 import tools.vitruv.cli.options.FileUtils;
 
 /** This class is responsible for generating files from templates. */
 public class GenerateFromTemplate {
+
+  private static final Logger logger = Logger.getLogger(GenerateFromTemplate.class.getName());
   
   private Configuration getConfiguration() {
     Configuration cfg = new Configuration(Configuration.VERSION_2_3_31);
@@ -36,7 +40,7 @@ public class GenerateFromTemplate {
     try (Writer fileWriter = new FileWriter(filePath.getAbsolutePath(), false)) {
       template.process(data, fileWriter);
       fileWriter.flush();
-      System.out.println("writing to " + filePath.getAbsolutePath());
+      logger.info("writing to " + filePath.getAbsolutePath());
     } catch (TemplateException e) {
       e.printStackTrace();
     }
