@@ -13,7 +13,10 @@ import org.eclipse.emf.ecore.resource.ResourceSet;
 import org.eclipse.emf.ecore.resource.impl.ResourceSetImpl;
 import org.eclipse.emf.ecore.xmi.impl.XMIResourceFactoryImpl;
 
-/** The VitruvConfiguration class is used to store the configuration of the Vitruv CLI. */
+/**
+ * The VitruvConfiguration class is used to store the configuration of the
+ * Vitruv CLI.
+ */
 public class VitruvConfiguration {
   private Path localPath;
   private String packageName;
@@ -42,7 +45,8 @@ public class VitruvConfiguration {
    * Adds a metamodel location to the configuration.
    *
    * @param metamodelLocations The metamodel location to add.
-   * @return True if the metamodel location was added successfully, false otherwise.
+   * @return True if the metamodel location was added successfully, false
+   *         otherwise.
    */
   public boolean addMetamodelLocations(MetamodelLocation metamodelLocations) {
     return this.metamodelLocations.add(metamodelLocations);
@@ -92,10 +96,8 @@ public class VitruvConfiguration {
       ResourceSet resourceSet = new ResourceSetImpl();
       URI uri = URI.createFileURI(metamodel.getAbsolutePath().replaceAll("\\s", ""));
       Resource resource = resourceSet.getResource(uri, true);
-      if (!resource.getContents().isEmpty() && resource.getContents().get(0) instanceof EPackage) {
-        EPackage ePackage = (EPackage) resource.getContents().get(0);
+      if (!resource.getContents().isEmpty() && resource.getContents().get(0) instanceof EPackage ePackage) {
         this.addMetamodelLocations(new MetamodelLocation(metamodel, genmodel, ePackage.getNsURI()));
-
         // Load the GenModel to get the modelPluginID
         URI genmodelURI = URI.createFileURI(genmodel.getAbsolutePath());
         Resource genmodelResource = resourceSet.getResource(genmodelURI, true);
