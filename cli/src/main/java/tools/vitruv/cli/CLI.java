@@ -27,6 +27,7 @@ import java.util.logging.Logger;
 public class CLI {
 
   private static final Logger LOGGER = Logger.getLogger(CLI.class.getName());
+  private static final String WITH_VALUE = " with value ";
 
   /**
    * The main method of the CLI class. It parses the command line arguments and triggers the
@@ -58,7 +59,7 @@ public class CLI {
       VirtualModelBuilder builder = new VirtualModelBuilder();
       for (Option option : line.getOptions()) {
         LOGGER.info(
-            "Preparing option " + option.getLongOpt() + " with value " + option.getValuesList());
+            "Preparing option " + option.getLongOpt() + WITH_VALUE + option.getValuesList());
         ((VitruvCLIOption) option).prepare(line, configuration);
       }
       generateFiles(configuration);
@@ -66,7 +67,7 @@ public class CLI {
         LOGGER.info(
             "Preprocessing option "
                 + option.getLongOpt()
-                + " with value "
+                + WITH_VALUE
                 + option.getValuesList());
         ((VitruvCLIOption) option).preBuild(line, builder, configuration);
       }
@@ -102,7 +103,7 @@ public class CLI {
         LOGGER.info(
             "Postprocessing option "
                 + option.getLongOpt()
-                + " with value "
+                + WITH_VALUE
                 + option.getValuesList());
         ((VitruvCLIOption) option).postBuild(line, builder, configuration);
       }
