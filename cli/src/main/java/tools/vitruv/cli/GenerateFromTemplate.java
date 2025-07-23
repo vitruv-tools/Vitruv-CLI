@@ -360,7 +360,6 @@ public class GenerateFromTemplate {
     try {
       template = cfg.getTemplate("plugin.ftl");
     } catch (IOException e) {
-      // TODO Auto-generated catch block
       e.printStackTrace();
     }
     Map<String, Object> data = new HashMap<>();
