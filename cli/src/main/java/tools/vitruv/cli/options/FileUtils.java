@@ -14,6 +14,10 @@ import tools.vitruv.cli.configuration.CustomClassLoader;
 /** The FileUtils class provides utility methods for file operations. */
 public final class FileUtils {
 
+    private FileUtils() {
+        
+    }
+
   /**
    * The CLASS_LOADER is used to load classes from JAR files at runtime. It is used to load the
    * classes of the virtual model builder.
