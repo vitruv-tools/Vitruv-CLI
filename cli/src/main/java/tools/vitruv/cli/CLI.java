@@ -20,8 +20,10 @@ import tools.vitruv.framework.vsum.VirtualModelBuilder;
 import java.util.logging.Logger;
 
 /**
- * The CLI class is the main entry point for the command line interface of the Vitruv framework. It
- * parses the command line arguments and triggers the generation of the necessary files and the
+ * The CLI class is the main entry point for the command line interface of the
+ * Vitruv framework. It
+ * parses the command line arguments and triggers the generation of the
+ * necessary files and the
  * build of the project.
  */
 public class CLI {
@@ -30,17 +32,24 @@ public class CLI {
   private static final String WITH_VALUE = " with value ";
 
   /**
-   * The main method of the CLI class. It parses the command line arguments and triggers the
+   * The main method of the CLI class. It parses the command line arguments and
+   * triggers the
    *
    * @param args The command line arguments.
    */
   public static void main(String[] args) {
     new CLI().parseCLI(args);
   }
-  
+
+  static class MavenBuildException extends RuntimeException {
+    public MavenBuildException(String message) {
+      super(message);
+    }
+  }
 
   /**
-   * Parses the command line arguments and triggers the generation of the necessary files and the
+   * Parses the command line arguments and triggers the generation of the
+   * necessary files and the
    * build of the project.
    *
    * @param args The command line arguments.
@@ -95,8 +104,8 @@ public class CLI {
       }
       process.waitFor();
       if (process.exitValue() != 0) {
-        throw new Error(
-            "Error occurred during maven build! Please fix your setup accordingly! Exit code: "
+        throw new MavenBuildException(
+            "Error occurred during Maven build! Please fix your setup accordingly! Exit code: "
                 + process.exitValue());
       }
       for (Option option : line.getOptions()) {
@@ -180,9 +189,8 @@ public class CLI {
         new File((configuration.getLocalPath() + "/model/.project").replaceAll("\\s", "")),
         configuration.getPackageName());
     LOGGER.info("Generating project file");
-    File workflow =
-        new File(
-            (configuration.getLocalPath() + "/model/workflow/generate.mwe2").replaceAll("\\s", ""));
+    File workflow = new File(
+        (configuration.getLocalPath() + "/model/workflow/generate.mwe2").replaceAll("\\s", ""));
     configuration.setWorkflow(workflow);
 
     generateFromTemplate.generateMwe2(
