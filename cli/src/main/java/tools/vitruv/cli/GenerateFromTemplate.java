@@ -18,9 +18,7 @@ import tools.vitruv.cli.options.FileUtils;
 
 /** This class is responsible for generating files from templates. */
 public class GenerateFromTemplate {
-  /** Constructor. */
-  public GenerateFromTemplate() {}
-
+  
   private Configuration getConfiguration() {
     Configuration cfg = new Configuration(Configuration.VERSION_2_3_31);
     cfg.setDefaultEncoding("UTF-8");
