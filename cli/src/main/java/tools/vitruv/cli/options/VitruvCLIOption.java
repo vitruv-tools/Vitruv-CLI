@@ -33,7 +33,7 @@ public abstract class VitruvCLIOption extends Option implements VirtualModelBuil
    * @return The path that is defined by the option.
    */
   public Path getPath(CommandLine cmd, VirtualModelBuilder builder) {
-    return new FolderOption().getPath(cmd, builder);
+    return Path.of(cmd.getOptionValue(getOpt().replaceAll("\\s", "")));
   }
 
   @Override
