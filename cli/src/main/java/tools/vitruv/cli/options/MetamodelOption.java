@@ -27,8 +27,8 @@ public class MetamodelOption extends VitruvCLIOption {
   public static final String SUBFOLDER = "/model/src/main/ecore/";
   public static final String WORKFLOW_CONFIGURATION_STRING = """
         component = EcoreGenerator {
-          genModel = \"platform:/resource/%s\"
-          srcPath = \"platform:/resource/%s/target/generated-sources/ecore\"
+          genModel = "platform:/resource/%s"
+          srcPath = "platform:/resource/%s/target/generated-sources/ecore"
           generateCustomClasses = false
       }
       """;
