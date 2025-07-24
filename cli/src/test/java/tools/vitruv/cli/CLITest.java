@@ -2,10 +2,10 @@ package tools.vitruv.cli;
 
 import org.junit.jupiter.api.Test;
 
-public class CLITest {
+class CLITest {
 
   @Test
-  public void test() {
+  void test() {
     CLI.main(
         new String[] {
             "-m",
@@ -14,5 +14,5 @@ public class CLITest {
             "-u", "default",
             "-r", "src/test/resources/consistency/templateReactions.reactions"
         });
-  }
+    }
 }
