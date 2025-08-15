@@ -115,6 +115,7 @@ public class CLI {
 
   private void generateFiles(VitruvConfiguration configuration)
       throws IOException, MissingModelException {
+
     GenerateFromTemplate generateFromTemplate = new GenerateFromTemplate();
 
     generateFromTemplate.generateRootPom(
