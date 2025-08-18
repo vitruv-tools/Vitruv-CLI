@@ -2,14 +2,17 @@ package tools.vitruv.cli.options;
 
 import java.nio.file.Path;
 import org.apache.commons.cli.CommandLine;
-
 import tools.vitruv.cli.configuration.VitruvConfiguration;
 import tools.vitruv.framework.vsum.VirtualModelBuilder;
 
 public class FolderOption extends VitruvCLIOption {
   public FolderOption() {
-    super("f", "folder", true,
+    super(
+        "f",
+        "folder",
+        true,
         "The path to the folder the Vitruv project should be instantiated in.");
+    this.setRequired(true);
   }
 
   @Override
@@ -18,8 +21,8 @@ public class FolderOption extends VitruvCLIOption {
   }
 
   @Override
-  public VirtualModelBuilder applyInternal(CommandLine cmd, VirtualModelBuilder builder,
-      VitruvConfiguration configuration) {
+  public VirtualModelBuilder applyInternal(
+      CommandLine cmd, VirtualModelBuilder builder, VitruvConfiguration configuration) {
     return builder.withStorageFolder(Path.of(configuration.getLocalPath() + "data/"));
   }
 

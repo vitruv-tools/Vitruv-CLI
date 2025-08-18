@@ -11,6 +11,7 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import tools.vitruv.cli.configuration.VitruvConfiguration;
+import tools.vitruv.cli.exceptions.MissingModelException;
 import tools.vitruv.cli.options.FolderOption;
 import tools.vitruv.cli.options.MetamodelOption;
 import tools.vitruv.cli.options.ReactionOption;
@@ -80,7 +81,7 @@ public class CLI {
                   .toFile()
                   .getAbsoluteFile()
                   .toString()
-                  .replaceAll("\\s", "")));
+                  .replaceAll("\s", "")));
       Process process = pbuilder.start();
 
       BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
@@ -107,10 +108,14 @@ public class CLI {
       System.out.println("Parsing failed.  Reason: " + exp.getMessage());
     } catch (IOException | InterruptedException e) {
       System.out.println("Invoking maven to build the project failed.  Reason: " + e.getMessage());
+    } catch (MissingModelException e) {
+      System.out.println("Generating files failed (missing models).  Reason: " + e.getMessage());
     }
   }
 
-  private void generateFiles(VitruvConfiguration configuration) throws IOException {
+  private void generateFiles(VitruvConfiguration configuration)
+      throws IOException, MissingModelException {
+
     GenerateFromTemplate generateFromTemplate = new GenerateFromTemplate();
 
     generateFromTemplate.generateRootPom(
