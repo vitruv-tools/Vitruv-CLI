@@ -3,11 +3,11 @@ package tools.vitruv.cli.options;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.StringJoiner;
+import java.util.logging.Logger;
 import java.util.stream.IntStream;
 
 import org.apache.commons.cli.CommandLine;
@@ -27,11 +27,12 @@ public class MetamodelOption extends VitruvCLIOption {
   public static final String SUBFOLDER = "/model/src/main/ecore/";
   public static final String WORKFLOW_CONFIGURATION_STRING = """
         component = EcoreGenerator {
-          genModel = \"platform:/resource/%s\"
-          srcPath = \"platform:/resource/%s/target/generated-sources/ecore\"
+          genModel = "platform:/resource/%s"
+          srcPath = "platform:/resource/%s/target/generated-sources/ecore"
           generateCustomClasses = false
       }
       """;
+    private static final Logger LOGGER = Logger.getLogger(MetamodelOption.class.getName());
 
   public MetamodelOption() {
     super(
@@ -60,8 +61,7 @@ public class MetamodelOption extends VitruvCLIOption {
       ResourceSet resourceSet = new ResourceSetImpl();
       URI uri = URI.createFileURI(metamodel.getAbsolutePath().trim());
       Resource resource = resourceSet.getResource(uri, true);
-      if (!resource.getContents().isEmpty() && resource.getContents().get(0) instanceof EPackage) {
-        EPackage ePackage = (EPackage) resource.getContents().get(0);
+      if (!resource.getContents().isEmpty() && resource.getContents().get(0) instanceof EPackage ePackage) {
         configuration.addMetamodelLocations(
             new MetamodelLocation(metamodel, genmodel, ePackage.getNsURI()));
       }
@@ -73,12 +73,12 @@ public class MetamodelOption extends VitruvCLIOption {
     try {
       List<String> alines = Files.readAllLines(configuration.getWorkflow().toPath());
       List<String> lines = new ArrayList<>(alines);
-      System.out.println(configuration.getWorkflow().toPath());
+      LOGGER.info(configuration.getWorkflow().toPath().toString());
       for (int i = 0; i < lines.size(); i++) {
         if (lines.get(i).contains("#")) {
-          System.out.println(lines);
+          LOGGER.info(lines.toString());
           lines.set(i, lines.get(i).replace("#", createSpecialString(count, "#")));
-          System.out.println(lines);
+          LOGGER.info(lines.toString());
           Files.write(
               configuration.getWorkflow().toPath(), lines, StandardOpenOption.TRUNCATE_EXISTING);
           return;
@@ -93,40 +93,6 @@ public class MetamodelOption extends VitruvCLIOption {
     StringJoiner joiner = new StringJoiner(" ");
     IntStream.range(0, x).forEach((int i) -> joiner.add(specialChar));
     return joiner.toString();
-  }
-
-  private void modifyPathsInsideGenmodel(
-      File metamodel, File genmodel, VitruvConfiguration configuration) {
-    System.out.println(
-        String.format(
-            WORKFLOW_CONFIGURATION_STRING,
-            Path.of(new File("").getAbsolutePath()).relativize(genmodel.toPath()),
-            configuration.getLocalPath())
-            .replace("\\", "/"));
-    try {
-      List<String> alines = Files.readAllLines(configuration.getWorkflow().toPath());
-      List<String> lines = new ArrayList<>(alines);
-      for (int i = 0; i < lines.size(); i++) {
-        if (lines.get(i).contains("#")) {
-          lines.set(
-              i,
-              lines
-                  .get(i)
-                  .replaceFirst(
-                      "#",
-                      String.format(
-                          WORKFLOW_CONFIGURATION_STRING,
-                          Path.of(new File("").getAbsolutePath()).relativize(genmodel.toPath()),
-                          configuration.getLocalPath())
-                          .replace("\\", "/")));
-        }
-        Files.write(
-            configuration.getWorkflow().toPath(), lines, StandardOpenOption.TRUNCATE_EXISTING);
-      }
-    } catch (IOException e) {
-      e.printStackTrace();
-    }
-    // TODO
   }
 
   @Override
