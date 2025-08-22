@@ -19,7 +19,7 @@ public class ReactionsOption extends VitruvCLIOption {
 
   @Override
   public void prepare(CommandLine cmd, VitruvConfiguration configuration) {
-
+    throw new UnsupportedOperationException("FileReactionsOption does not support preparation.");
   }
 
 }
