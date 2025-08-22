@@ -17,7 +17,7 @@ public class FolderOption extends VitruvCLIOption {
 
   @Override
   public Path getPath(CommandLine cmd, VirtualModelBuilder builder) {
-    return Path.of(cmd.getOptionValue(getOpt().replaceAll("\\s", "")));
+    return Path.of(cmd.getOptionValue(getOpt().trim()));
   }
 
   @Override
@@ -28,6 +28,6 @@ public class FolderOption extends VitruvCLIOption {
 
   @Override
   public void prepare(CommandLine cmd, VitruvConfiguration configuration) {
-    configuration.setLocalPath(Path.of(cmd.getOptionValue(getOpt().replaceAll("\\s", ""))));
+    configuration.setLocalPath(Path.of(cmd.getOptionValue(getOpt().trim())));
   }
 }
