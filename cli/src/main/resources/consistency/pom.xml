@@ -14,7 +14,7 @@
     <artifactId>tools.vitruv.cli.consistency</artifactId>
 
     <name>Consistency</name>
-    <description />
+    <description>The consistency package of the methodologist package</description>
 
     <dependencies>
         <!-- project dependencies-->
