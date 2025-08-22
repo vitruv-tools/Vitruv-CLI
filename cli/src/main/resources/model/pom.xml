@@ -14,7 +14,7 @@
   <artifactId>tools.vitruv.cli.model</artifactId>
 
   <name>Model</name>
-  <description />
+  <description>The model package of the methodologist template</description>
 
   <build>
     <plugins>
