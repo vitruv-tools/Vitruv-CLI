@@ -98,7 +98,7 @@ public class VitruvConfiguration {
 
       // getting the URI from the genmodels
       ResourceSet resourceSet = new ResourceSetImpl();
-      URI uri = URI.createFileURI(metamodel.getAbsolutePath().replaceAll("\\s", ""));
+      URI uri = URI.createFileURI(metamodel.getAbsolutePath().trim());
       Resource resource = resourceSet.getResource(uri, true);
       if (!resource.getContents().isEmpty() && resource.getContents().get(0) instanceof EPackage ePackage) {
         this.addMetamodelLocations(new MetamodelLocation(metamodel, genmodel, ePackage.getNsURI()));
