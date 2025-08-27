@@ -9,11 +9,18 @@ import java.nio.file.StandardCopyOption;
 import java.util.Enumeration;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
+import java.util.logging.Logger;
 
 import tools.vitruv.cli.configuration.CustomClassLoader;
 
 /** The FileUtils class provides utility methods for file operations. */
 public final class FileUtils {
+
+  private static final Logger logger = Logger.getLogger(FileUtils.class.getName());
+
+  private FileUtils() {
+
+  }
 
   /**
    * The CLASS_LOADER is used to load classes from JAR files at runtime. It is
@@ -21,7 +28,7 @@ public final class FileUtils {
    * classes of the virtual model builder.
    */
   public static final CustomClassLoader CLASS_LOADER = new CustomClassLoader(new URL[] {},
-      FileUtils.class.getClassLoader().getSystemClassLoader());
+      ClassLoader.getSystemClassLoader());
 
   /**
    * Copy a file to a new location.
@@ -49,7 +56,7 @@ public final class FileUtils {
       target = folderPath.toFile();
     } else {
       target = Path.of(
-          new File("").getAbsolutePath().trim()
+        new File("").getAbsolutePath().trim()
               + "/"
               + folderPath.toString().trim()
               + "/"
@@ -59,7 +66,7 @@ public final class FileUtils {
     }
     // Files.copy throws a misleading Exception if the target File and/or the
     // folders of the target file are not existing.
-    System.out.println(
+    logger.info(
         "Copying file " + source.getAbsolutePath() + " to  " + target.getAbsolutePath());
     target.getParentFile().mkdirs();
     try {
@@ -86,12 +93,12 @@ public final class FileUtils {
       }
       // Create the file
       if (file.createNewFile()) {
-        System.out.println("File created: " + file.getAbsolutePath());
+        logger.info("File created: " + file.getAbsolutePath());
       } else {
-        System.out.println("File already exists: " + file.getAbsolutePath());
+        logger.info("File already exists: " + file.getAbsolutePath());
       }
     } catch (IOException e) {
-      System.out.println("An error occurred while creating the file: " + e.getMessage());
+      logger.info("An error occurred while creating the file: " + e.getMessage());
       e.printStackTrace();
     }
   }
@@ -104,12 +111,12 @@ public final class FileUtils {
    * @return The created folder.
    */
   public static Path createNewFolder(Path path, String folder) {
-    Path folderPath = Path.of(path.toString() + "/" + folder);
+    Path folderPath = path.resolve(folder);
     File file = folderPath.toFile();
     if (file.mkdirs()) {
-      System.out.println("Directory created: " + file.getAbsolutePath());
+      logger.info("Directory created: " + file.getAbsolutePath());
     } else {
-      System.out.println("Directory already exists: " + file.getAbsolutePath());
+      logger.info("Directory already exists: " + file.getAbsolutePath());
     }
     return folderPath;
   }
@@ -156,7 +163,7 @@ public final class FileUtils {
         if (entry.getName().endsWith(".class")) {
           // Print the class name
           String className = entry.getName().replace("/", ".").replace(".class", "");
-          System.out.println(className);
+          logger.info(className);
         }
       }
 
