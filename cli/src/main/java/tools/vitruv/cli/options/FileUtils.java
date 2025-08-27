@@ -47,21 +47,21 @@ public final class FileUtils {
       source = Path.of(filePath).toFile();
     } else {
       source = Path.of(
-          new File("").getAbsolutePath().replaceAll("\\s", "")
+          new File("").getAbsolutePath().trim()
               + "/"
-              + filePath.replaceAll("\\s", ""))
+              + filePath.trim())
           .toFile();
     }
     if (folderPath.isAbsolute()) {
       target = folderPath.toFile();
     } else {
       target = Path.of(
-          new File("").getAbsolutePath().replaceAll("\\s", "")
+        new File("").getAbsolutePath().trim()
               + "/"
-              + folderPath.toString().replaceAll("\\s", "")
+              + folderPath.toString().trim()
               + "/"
               + relativeSubfolder
-              + source.getName().replaceAll("\\s", ""))
+              + source.getName().trim())
           .toFile();
     }
     // Files.copy throws a misleading Exception if the target File and/or the

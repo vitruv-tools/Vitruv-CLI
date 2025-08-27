@@ -12,6 +12,7 @@ public class ReactionOption extends VitruvCLIOption {
 
   public ReactionOption() {
     super("r", "reaction", true, "The path to the file the Reactions are stored in.");
+    this.setRequired(true);
   }
 
   @Override
