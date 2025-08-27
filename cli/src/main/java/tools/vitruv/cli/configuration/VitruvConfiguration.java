@@ -4,6 +4,8 @@ import java.io.File;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Logger;
+
 import org.eclipse.emf.codegen.ecore.genmodel.GenModel;
 import org.eclipse.emf.codegen.ecore.genmodel.GenModelPackage;
 import org.eclipse.emf.common.util.URI;
@@ -13,10 +15,15 @@ import org.eclipse.emf.ecore.resource.ResourceSet;
 import org.eclipse.emf.ecore.resource.impl.ResourceSetImpl;
 import org.eclipse.emf.ecore.xmi.impl.XMIResourceFactoryImpl;
 
-/** The VitruvConfiguration class is used to store the configuration of the Vitruv CLI. */
+/**
+ * The VitruvConfiguration class is used to store the configuration of the
+ * Vitruv CLI.
+ */
 public class VitruvConfiguration {
   private Path localPath;
   private String packageName;
+  
+  private static final Logger logger = Logger.getLogger(VitruvConfiguration.class.getName());
 
   /**
    * Returns the local path of the configuration.
@@ -42,7 +49,8 @@ public class VitruvConfiguration {
    * Adds a metamodel location to the configuration.
    *
    * @param metamodelLocations The metamodel location to add.
-   * @return True if the metamodel location was added successfully, false otherwise.
+   * @return True if the metamodel location was added successfully, false
+   *         otherwise.
    */
   public boolean addMetamodelLocations(MetamodelLocation metamodelLocations) {
     return this.metamodelLocations.add(metamodelLocations);
@@ -90,20 +98,17 @@ public class VitruvConfiguration {
 
       // getting the URI from the genmodels
       ResourceSet resourceSet = new ResourceSetImpl();
-      URI uri = URI.createFileURI(metamodel.getAbsolutePath().replaceAll("\\s", ""));
+      URI uri = URI.createFileURI(metamodel.getAbsolutePath().trim());
       Resource resource = resourceSet.getResource(uri, true);
-      if (!resource.getContents().isEmpty() && resource.getContents().get(0) instanceof EPackage) {
-        EPackage ePackage = (EPackage) resource.getContents().get(0);
+      if (!resource.getContents().isEmpty() && resource.getContents().get(0) instanceof EPackage ePackage) {
         this.addMetamodelLocations(new MetamodelLocation(metamodel, genmodel, ePackage.getNsURI()));
-
         // Load the GenModel to get the modelPluginID
         URI genmodelURI = URI.createFileURI(genmodel.getAbsolutePath());
         Resource genmodelResource = resourceSet.getResource(genmodelURI, true);
         if (!genmodelResource.getContents().isEmpty()
-            && genmodelResource.getContents().get(0) instanceof GenModel) {
-          GenModel genModel = (GenModel) genmodelResource.getContents().get(0);
+            && genmodelResource.getContents().get(0) instanceof GenModel genModel) {
           String packageString = removeLastSegment(genModel.getModelPluginID());
-          System.out.println("--------------------->>>>  " + packageString);
+          logger.info("--------------------->>>>  " + packageString);
           this.setPackageName(packageString);
         }
       }

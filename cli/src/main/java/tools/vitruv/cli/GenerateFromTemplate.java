@@ -1,9 +1,5 @@
 package tools.vitruv.cli;
 
-import freemarker.template.Configuration;
-import freemarker.template.Template;
-import freemarker.template.TemplateException;
-import freemarker.template.TemplateExceptionHandler;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -12,15 +8,26 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Logger;
+
+import freemarker.template.Configuration;
+import freemarker.template.Template;
+import freemarker.template.TemplateException;
+import freemarker.template.TemplateExceptionHandler;
 import tools.vitruv.cli.configuration.MetamodelLocation;
 import tools.vitruv.cli.configuration.VitruvConfiguration;
+import tools.vitruv.cli.exceptions.MissingModelException;
 import tools.vitruv.cli.options.FileUtils;
 
 /** This class is responsible for generating files from templates. */
 public class GenerateFromTemplate {
   /** Constructor. */
-  public GenerateFromTemplate() {}
+  public GenerateFromTemplate() {
+  }
 
+  private static final Logger logger = Logger.getLogger(GenerateFromTemplate.class.getName());
+  private static final String PACKAGE_NAME = "packageName";
+  
   private Configuration getConfiguration() {
     Configuration cfg = new Configuration(Configuration.VERSION_2_3_31);
     cfg.setDefaultEncoding("UTF-8");
@@ -38,7 +45,7 @@ public class GenerateFromTemplate {
     try (Writer fileWriter = new FileWriter(filePath.getAbsolutePath(), false)) {
       template.process(data, fileWriter);
       fileWriter.flush();
-      System.out.println("writing to " + filePath.getAbsolutePath());
+      logger.info("writing to " + filePath.getAbsolutePath());
     } catch (TemplateException e) {
       e.printStackTrace();
     }
@@ -47,15 +54,21 @@ public class GenerateFromTemplate {
   /**
    * Generates the root pom file.
    *
-   * @param filePath The file path to write the root pom file to.
+   * @param filePath    The file path to write the root pom file to.
    * @param packageName The package name from the genmodel.
-   * @throws IOException If the file cannot be written.
+   * @throws IOException           If the file cannot be written.
+   * @throws MissingModelException If the package name is missing.
    */
-  public void generateRootPom(File filePath, String packageName) throws IOException {
+  public void generateRootPom(File filePath, String packageName)
+      throws IOException, MissingModelException {
+
+    if (packageName == null || packageName.isEmpty()) {
+      throw new MissingModelException("-m ModelOption is missing the PackageName");
+    }
     Configuration cfg = getConfiguration();
 
     Map<String, Object> data = new HashMap<>();
-    data.put("packageName", packageName.replaceAll("\\s", ""));
+    data.put("packageName", packageName.trim());
 
     Template template = null;
     try {
@@ -69,7 +82,7 @@ public class GenerateFromTemplate {
   /**
    * Generates the vsum pom file.
    *
-   * @param filePath The file path to write the vsum pom file to.
+   * @param filePath    The file path to write the vsum pom file to.
    * @param packageName The package name from the genmodel.
    * @throws IOException If the file cannot be written.
    */
@@ -77,7 +90,7 @@ public class GenerateFromTemplate {
     Configuration cfg = getConfiguration();
 
     Map<String, Object> data = new HashMap<>();
-    data.put("packageName", packageName.replaceAll("\\s", ""));
+    data.put("packageName", packageName.trim());
 
     Template template = null;
     try {
@@ -91,7 +104,7 @@ public class GenerateFromTemplate {
   /**
    * Generates the vsum example file.
    *
-   * @param filePath The file path to write the vsum example file to.
+   * @param filePath    The file path to write the vsum example file to.
    * @param packageName The package name from the genmodel.
    * @throws IOException If the file cannot be written.
    */
@@ -99,7 +112,7 @@ public class GenerateFromTemplate {
     Configuration cfg = getConfiguration();
 
     Map<String, Object> data = new HashMap<>();
-    data.put("packageName", packageName.replaceAll("\\s", ""));
+    data.put("packageName", packageName.trim());
 
     Template template = null;
     try {
@@ -113,7 +126,7 @@ public class GenerateFromTemplate {
   /**
    * Generates the p2wrappers pom file.
    *
-   * @param filePath The file path to write the p2wrappers pom file to.
+   * @param filePath    The file path to write the p2wrappers pom file to.
    * @param packageName The package name from the genmodel.
    * @throws IOException If the file cannot be written.
    */
@@ -121,7 +134,7 @@ public class GenerateFromTemplate {
     Configuration cfg = getConfiguration();
 
     Map<String, Object> data = new HashMap<>();
-    data.put("packageName", packageName.replaceAll("\\s", ""));
+    data.put("packageName", packageName.trim());
 
     Template template = null;
     try {
@@ -135,7 +148,7 @@ public class GenerateFromTemplate {
   /**
    * Generates the javautils pom file.
    *
-   * @param filePath The file path to write the javautils pom file to.
+   * @param filePath    The file path to write the javautils pom file to.
    * @param packageName The package name from the genmodel.
    * @throws IOException If the file cannot be written.
    */
@@ -143,7 +156,7 @@ public class GenerateFromTemplate {
     Configuration cfg = getConfiguration();
 
     Map<String, Object> data = new HashMap<>();
-    data.put("packageName", packageName.replaceAll("\\s", ""));
+    data.put("packageName", packageName.trim());
 
     Template template = null;
     try {
@@ -157,7 +170,7 @@ public class GenerateFromTemplate {
   /**
    * Generates the xannotations pom file.
    *
-   * @param filePath The file path to write the xannotations pom file to.
+   * @param filePath    The file path to write the xannotations pom file to.
    * @param packageName The package name from the genmodel.
    * @throws IOException If the file cannot be written.
    */
@@ -165,7 +178,7 @@ public class GenerateFromTemplate {
     Configuration cfg = getConfiguration();
 
     Map<String, Object> data = new HashMap<>();
-    data.put("packageName", packageName.replaceAll("\\s", ""));
+    data.put("packageName", packageName.trim());
 
     Template template = null;
     try {
@@ -179,7 +192,7 @@ public class GenerateFromTemplate {
   /**
    * Generates the emfutils pom file.
    *
-   * @param filePath The file path to write the emfutils pom file to.
+   * @param filePath    The file path to write the emfutils pom file to.
    * @param packageName The package name from the genmodel.
    * @throws IOException If the file cannot be written.
    */
@@ -187,7 +200,7 @@ public class GenerateFromTemplate {
     Configuration cfg = getConfiguration();
 
     Map<String, Object> data = new HashMap<>();
-    data.put("packageName", packageName.replaceAll("\\s", ""));
+    data.put("packageName", packageName.trim());
 
     Template template = null;
     try {
@@ -201,7 +214,7 @@ public class GenerateFromTemplate {
   /**
    * Generates the vsum test file.
    *
-   * @param filePath The file path to write the vsum test file to.
+   * @param filePath    The file path to write the vsum test file to.
    * @param packageName The package name from the genmodel.
    * @throws IOException If the file cannot be written.
    */
@@ -209,7 +222,7 @@ public class GenerateFromTemplate {
     Configuration cfg = getConfiguration();
 
     Map<String, Object> data = new HashMap<>();
-    data.put("packageName", packageName.replaceAll("\\s", ""));
+    data.put("packageName", packageName.trim());
 
     Template template = null;
     try {
@@ -223,7 +236,7 @@ public class GenerateFromTemplate {
   /**
    * Generates the project file.
    *
-   * @param filePath The file path to write the project file to.
+   * @param filePath    The file path to write the project file to.
    * @param packageName The package name from the genmodel.
    * @throws IOException If the file cannot be written.
    */
@@ -231,7 +244,7 @@ public class GenerateFromTemplate {
     Configuration cfg = getConfiguration();
 
     Map<String, Object> data = new HashMap<>();
-    data.put("packageName", packageName.replaceAll("\\s", ""));
+    data.put("packageName", packageName.trim());
 
     Template template = null;
     try {
@@ -245,7 +258,7 @@ public class GenerateFromTemplate {
   /**
    * Generates the model pom file.
    *
-   * @param filePath The file path to write the model pom file to.
+   * @param filePath    The file path to write the model pom file to.
    * @param packageName The package name from the genmodel.
    * @throws IOException If the file cannot be written.
    */
@@ -253,7 +266,7 @@ public class GenerateFromTemplate {
     Configuration cfg = getConfiguration();
 
     Map<String, Object> data = new HashMap<>();
-    data.put("packageName", packageName);
+    data.put(PACKAGE_NAME, packageName);
 
     Template template = null;
     try {
@@ -267,7 +280,7 @@ public class GenerateFromTemplate {
   /**
    * Generates the consistency pom file.
    *
-   * @param filePath The file path to write the consistency pom file to.
+   * @param filePath    The file path to write the consistency pom file to.
    * @param packageName The package name from the genmodel.
    * @throws IOException If the file cannot be written.
    */
@@ -275,7 +288,7 @@ public class GenerateFromTemplate {
     Configuration cfg = getConfiguration();
 
     Map<String, Object> data = new HashMap<>();
-    data.put("packageName", packageName);
+    data.put(PACKAGE_NAME, packageName);
 
     Template template = null;
     try {
@@ -290,8 +303,8 @@ public class GenerateFromTemplate {
    * Generates the mwe2 file.
    *
    * @param filePath the file path to write the mwe2 file to.
-   * @param models the list of metamodel locations.
-   * @param config the vitruv cli configuration.
+   * @param models   the list of metamodel locations.
+   * @param config   the vitruv cli configuration.
    * @throws IOException If the file cannot be written.
    */
   public void generateMwe2(
@@ -304,11 +317,11 @@ public class GenerateFromTemplate {
       items.add(
           Map.of(
               "targetDir",
-              config.getLocalPath().toString().replaceAll("\\s", ""),
+              config.getLocalPath().toString().trim(),
               "modelName",
               model.genmodel().getName(),
               "packageName",
-              config.getPackageName().replaceAll("\\s", "").concat(".model")));
+              config.getPackageName().trim().concat(".model")));
     }
     // Load template
     Template template = null;
@@ -327,8 +340,8 @@ public class GenerateFromTemplate {
    * Generates the plugin file.
    *
    * @param filePath the file path to write the plugin file to.
-   * @param config the vitruv cli configuration.
-   * @param models the list of metamodel locations.
+   * @param config   the vitruv cli configuration.
+   * @param models   the list of metamodel locations.
    * @throws IOException If the file cannot be written.
    */
   public void generatePlugin(
@@ -339,7 +352,7 @@ public class GenerateFromTemplate {
     for (MetamodelLocation model : models) {
       items.add(
           Map.of(
-              "packageName",
+              PACKAGE_NAME,
               config.getPackageName(),
               "modelUri",
               model.genmodelUri(),
@@ -357,7 +370,6 @@ public class GenerateFromTemplate {
     try {
       template = cfg.getTemplate("plugin.ftl");
     } catch (IOException e) {
-      // TODO Auto-generated catch block
       e.printStackTrace();
     }
     Map<String, Object> data = new HashMap<>();

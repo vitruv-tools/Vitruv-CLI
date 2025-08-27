@@ -42,6 +42,7 @@ public class MetamodelOption extends VitruvCLIOption {
             + " are used in the reactions, e.g.,"
             + " MyMetamodel.ecore,MyGenmodel.genmodel;MyMetamodel1.ecore,MyGenmodel1.genmodel");
     this.setValueSeparator(';');
+    this.setRequired(true);
   }
 
   @Override
@@ -57,7 +58,7 @@ public class MetamodelOption extends VitruvCLIOption {
       Resource.Factory.Registry reg = Resource.Factory.Registry.INSTANCE;
       reg.getExtensionToFactoryMap().put("ecore", new XMIResourceFactoryImpl());
       ResourceSet resourceSet = new ResourceSetImpl();
-      URI uri = URI.createFileURI(metamodel.getAbsolutePath().replaceAll("\\s", ""));
+      URI uri = URI.createFileURI(metamodel.getAbsolutePath().trim());
       Resource resource = resourceSet.getResource(uri, true);
       if (!resource.getContents().isEmpty() && resource.getContents().get(0) instanceof EPackage) {
         EPackage ePackage = (EPackage) resource.getContents().get(0);
@@ -132,5 +133,4 @@ public class MetamodelOption extends VitruvCLIOption {
   public void prepare(CommandLine cmd, VitruvConfiguration configuration) {
     configuration.setMetaModelLocations(cmd.getOptionValue(getOpt()));
   }
-
 }
