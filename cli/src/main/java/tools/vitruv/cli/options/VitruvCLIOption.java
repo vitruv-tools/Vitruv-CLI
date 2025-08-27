@@ -20,7 +20,7 @@ public abstract class VitruvCLIOption extends Option implements VirtualModelBuil
    * @param hasArguments A flag that indicates if the option has arguments.
    * @param description The description of the option.
    */
-  public VitruvCLIOption(
+  protected VitruvCLIOption(
       String abbreviationName, String longName, boolean hasArguments, String description) {
     super(abbreviationName, longName, hasArguments, description);
   }
