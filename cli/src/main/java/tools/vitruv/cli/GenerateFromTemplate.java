@@ -9,12 +9,15 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import java.util.logging.Logger;
+
 import freemarker.template.Configuration;
 import freemarker.template.Template;
 import freemarker.template.TemplateException;
 import freemarker.template.TemplateExceptionHandler;
 import tools.vitruv.cli.configuration.MetamodelLocation;
 import tools.vitruv.cli.configuration.VitruvConfiguration;
+import tools.vitruv.cli.exceptions.MissingModelException;
 import tools.vitruv.cli.options.FileUtils;
 
 /** This class is responsible for generating files from templates. */
@@ -23,6 +26,9 @@ public class GenerateFromTemplate {
   public GenerateFromTemplate() {
   }
 
+  private static final Logger logger = Logger.getLogger(GenerateFromTemplate.class.getName());
+  private static final String PACKAGE_NAME = "packageName";
+  
   private Configuration getConfiguration() {
     Configuration cfg = new Configuration(Configuration.VERSION_2_3_31);
     cfg.setDefaultEncoding("UTF-8");
@@ -40,7 +46,7 @@ public class GenerateFromTemplate {
     try (Writer fileWriter = new FileWriter(filePath.getAbsolutePath(), false)) {
       template.process(data, fileWriter);
       fileWriter.flush();
-      System.out.println("writing to " + filePath.getAbsolutePath());
+      logger.info("writing to " + filePath.getAbsolutePath());
     } catch (TemplateException e) {
       e.printStackTrace();
     }
@@ -51,13 +57,19 @@ public class GenerateFromTemplate {
    *
    * @param filePath    The file path to write the root pom file to.
    * @param packageName The package name from the genmodel.
-   * @throws IOException If the file cannot be written.
+   * @throws IOException           If the file cannot be written.
+   * @throws MissingModelException If the package name is missing.
    */
-  public void generateRootPom(File filePath, String packageName) throws IOException {
+  public void generateRootPom(File filePath, String packageName)
+      throws IOException, MissingModelException {
+
+    if (packageName == null || packageName.isEmpty()) {
+      throw new MissingModelException("-m ModelOption is missing the PackageName");
+    }
     Configuration cfg = getConfiguration();
 
     Map<String, Object> data = new HashMap<>();
-    data.put("packageName", packageName.replaceAll("\\s", ""));
+    data.put("packageName", packageName.trim());
 
     Template template = null;
     try {
@@ -79,7 +91,7 @@ public class GenerateFromTemplate {
     Configuration cfg = getConfiguration();
 
     Map<String, Object> data = new HashMap<>();
-    data.put("packageName", packageName.replaceAll("\\s", ""));
+    data.put("packageName", packageName.trim());
 
     Template template = null;
     try {
@@ -101,7 +113,7 @@ public class GenerateFromTemplate {
     Configuration cfg = getConfiguration();
 
     Map<String, Object> data = new HashMap<>();
-    data.put("packageName", packageName.replaceAll("\\s", ""));
+    data.put("packageName", packageName.trim());
 
     Template template = null;
     try {
@@ -123,7 +135,7 @@ public class GenerateFromTemplate {
     Configuration cfg = getConfiguration();
 
     Map<String, Object> data = new HashMap<>();
-    data.put("packageName", packageName.replaceAll("\\s", ""));
+    data.put("packageName", packageName.trim());
 
     Template template = null;
     try {
@@ -145,7 +157,7 @@ public class GenerateFromTemplate {
     Configuration cfg = getConfiguration();
 
     Map<String, Object> data = new HashMap<>();
-    data.put("packageName", packageName.replaceAll("\\s", ""));
+    data.put("packageName", packageName.trim());
 
     Template template = null;
     try {
@@ -167,7 +179,7 @@ public class GenerateFromTemplate {
     Configuration cfg = getConfiguration();
 
     Map<String, Object> data = new HashMap<>();
-    data.put("packageName", packageName.replaceAll("\\s", ""));
+    data.put("packageName", packageName.trim());
 
     Template template = null;
     try {
@@ -189,7 +201,7 @@ public class GenerateFromTemplate {
     Configuration cfg = getConfiguration();
 
     Map<String, Object> data = new HashMap<>();
-    data.put("packageName", packageName.replaceAll("\\s", ""));
+    data.put("packageName", packageName.trim());
 
     Template template = null;
     try {
@@ -211,7 +223,7 @@ public class GenerateFromTemplate {
     Configuration cfg = getConfiguration();
 
     Map<String, Object> data = new HashMap<>();
-    data.put("packageName", packageName.replaceAll("\\s", ""));
+    data.put("packageName", packageName.trim());
 
     Template template = null;
     try {
@@ -233,7 +245,7 @@ public class GenerateFromTemplate {
     Configuration cfg = getConfiguration();
 
     Map<String, Object> data = new HashMap<>();
-    data.put("packageName", packageName.replaceAll("\\s", ""));
+    data.put("packageName", packageName.trim());
 
     Template template = null;
     try {
@@ -255,7 +267,7 @@ public class GenerateFromTemplate {
     Configuration cfg = getConfiguration();
 
     Map<String, Object> data = new HashMap<>();
-    data.put("packageName", packageName);
+    data.put(PACKAGE_NAME, packageName);
 
     Template template = null;
     try {
@@ -277,7 +289,7 @@ public class GenerateFromTemplate {
     Configuration cfg = getConfiguration();
 
     Map<String, Object> data = new HashMap<>();
-    data.put("packageName", packageName);
+    data.put(PACKAGE_NAME, packageName);
 
     Template template = null;
     try {
@@ -306,13 +318,11 @@ public class GenerateFromTemplate {
       items.add(
           Map.of(
               "targetDir",
-              config.getLocalPath().toString().replaceAll("\\s", ""),
+              config.getLocalPath().toString().trim(),
               "modelName",
               model.genmodel().getName(),
               "packageName",
-              config.getPackageName().replaceAll("\\s", "").concat(".model"),
-              "modelDirectory",
-              model.modelDirectory().replaceAll("\\s", "")));
+              config.getPackageName().trim().concat(".model")));
     }
     // Load template
     Template template = null;
@@ -343,7 +353,7 @@ public class GenerateFromTemplate {
     for (MetamodelLocation model : models) {
       items.add(
           Map.of(
-              "packageName",
+              PACKAGE_NAME,
               config.getPackageName(),
               "modelUri",
               model.genmodelUri(),
@@ -361,7 +371,6 @@ public class GenerateFromTemplate {
     try {
       template = cfg.getTemplate("plugin.ftl");
     } catch (IOException e) {
-      // TODO Auto-generated catch block
       e.printStackTrace();
     }
     Map<String, Object> data = new HashMap<>();
