@@ -62,7 +62,8 @@ public class CLI {
       }
       generateFiles(configuration);
       for (Option option : line.getOptions()) {
-        log.info("Postprocessing option {} with value {}", option.getLongOpt(), option.getValuesList());
+        log.info(
+            "Postprocessing option {} with value {}", option.getLongOpt(), option.getValuesList());
         ((VitruvCLIOption) option).preBuild(line, builder, configuration);
       }
       ProcessBuilder pbuilder;
@@ -97,7 +98,7 @@ public class CLI {
     } catch (IOException | InterruptedException e) {
       log.error("Invoking maven to build the project failed.  Reason: {}", e.getMessage());
     } catch (MissingModelException e) {
-      System.out.println("Generating files failed (missing models).  Reason: " + e.getMessage());
+      log.error("Generating files failed (missing models).  Reason: " + e.getMessage());
     }
   }
 
