@@ -8,7 +8,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import java.util.logging.Logger;
 
 import freemarker.template.Configuration;
@@ -28,7 +27,7 @@ public class GenerateFromTemplate {
 
   private static final Logger logger = Logger.getLogger(GenerateFromTemplate.class.getName());
   private static final String PACKAGE_NAME = "packageName";
-  
+
   private Configuration getConfiguration() {
     Configuration cfg = new Configuration(Configuration.VERSION_2_3_31);
     cfg.setDefaultEncoding("UTF-8");
@@ -321,6 +320,7 @@ public class GenerateFromTemplate {
               config.getLocalPath().toString().trim(),
               "modelName",
               model.genmodel().getName(),
+              "modelDirectory", model.modelDirectory().trim(),
               "packageName",
               config.getPackageName().trim().concat(".model")));
     }

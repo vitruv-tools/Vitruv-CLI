@@ -4,9 +4,7 @@ import java.io.File;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
-
 import java.util.logging.Logger;
-
 
 import org.eclipse.emf.codegen.ecore.genmodel.GenModel;
 import org.eclipse.emf.codegen.ecore.genmodel.GenModelPackage;
@@ -24,7 +22,7 @@ import org.eclipse.emf.ecore.xmi.impl.XMIResourceFactoryImpl;
 public class VitruvConfiguration {
   private Path localPath;
   private String packageName;
-  
+
   private static final Logger logger = Logger.getLogger(VitruvConfiguration.class.getName());
 
   /**
@@ -99,14 +97,13 @@ public class VitruvConfiguration {
       String genmodelPath = modelPaths.split(",")[1];
       File metamodel = new File(metamodelPath);
       File genmodel = new File(genmodelPath);
-      String modelDirectory = "";
+      String localModelDirectory = "";
 
       // getting the URI from the genmodels
       ResourceSet resourceSet = new ResourceSetImpl();
       URI uri = URI.createFileURI(metamodel.getAbsolutePath().trim());
       Resource resource = resourceSet.getResource(uri, true);
       if (!resource.getContents().isEmpty() && resource.getContents().get(0) instanceof EPackage ePackage) {
-        this.addMetamodelLocations(new MetamodelLocation(metamodel, genmodel, ePackage.getNsURI()));
         // Load the GenModel to get the modelPluginID
         URI genmodelURI = URI.createFileURI(genmodel.getAbsolutePath());
         Resource genmodelResource = resourceSet.getResource(genmodelURI, true);
@@ -115,11 +112,10 @@ public class VitruvConfiguration {
           String packageString = removeLastSegment(genModel.getModelPluginID());
           logger.info("--------------------->>>>  " + packageString);
           this.setPackageName(packageString);
-          modelDirectory = genModel.getModelDirectory();
+          localModelDirectory = genModel.getModelDirectory();
         }
       }
-
-      this.addMetamodelLocations(new MetamodelLocation(metamodel, genmodel, nsUri, modelDirectory));
+      this.addMetamodelLocations(new MetamodelLocation(metamodel, genmodel, nsUri, localModelDirectory));
     }
   }
 

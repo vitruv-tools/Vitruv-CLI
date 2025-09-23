@@ -56,7 +56,7 @@ public final class FileUtils {
       target = folderPath.toFile();
     } else {
       target = Path.of(
-        new File("").getAbsolutePath().trim()
+          new File("").getAbsolutePath().trim()
               + "/"
               + folderPath.toString().trim()
               + "/"
