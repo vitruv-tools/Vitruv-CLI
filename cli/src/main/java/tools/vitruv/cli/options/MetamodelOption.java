@@ -3,7 +3,6 @@ package tools.vitruv.cli.options;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.List;
@@ -26,13 +25,6 @@ import tools.vitruv.framework.vsum.VirtualModelBuilder;
 public class MetamodelOption extends VitruvCLIOption {
   // resource/tools.vitruv.methodologisttemplate.model/src/main/ecore/model.genmodel
   public static final String SUBFOLDER = "/model/src/main/ecore/";
-  public static final String WORKFLOW_CONFIGURATION_STRING = """
-        component = EcoreGenerator {
-          genModel = \"platform:/resource/%s\"
-          srcPath = \"platform:/resource/%s/target/generated-sources/ecore\"
-          generateCustomClasses = false
-      }
-      """;
 
   public MetamodelOption() {
     super(
@@ -103,40 +95,6 @@ public class MetamodelOption extends VitruvCLIOption {
     StringJoiner joiner = new StringJoiner(" ");
     IntStream.range(0, x).forEach((int i) -> joiner.add(specialChar));
     return joiner.toString();
-  }
-
-  private void modifyPathsInsideGenmodel(
-      File metamodel, File genmodel, VitruvConfiguration configuration) {
-    System.out.println(
-        String.format(
-            WORKFLOW_CONFIGURATION_STRING,
-            Path.of(new File("").getAbsolutePath()).relativize(genmodel.toPath()),
-            configuration.getLocalPath())
-            .replace("\\", "/"));
-    try {
-      List<String> alines = Files.readAllLines(configuration.getWorkflow().toPath());
-      List<String> lines = new ArrayList<>(alines);
-      for (int i = 0; i < lines.size(); i++) {
-        if (lines.get(i).contains("#")) {
-          lines.set(
-              i,
-              lines
-                  .get(i)
-                  .replaceFirst(
-                      "#",
-                      String.format(
-                          WORKFLOW_CONFIGURATION_STRING,
-                          Path.of(new File("").getAbsolutePath()).relativize(genmodel.toPath()),
-                          configuration.getLocalPath())
-                          .replace("\\", "/")));
-        }
-        Files.write(
-            configuration.getWorkflow().toPath(), lines, StandardOpenOption.TRUNCATE_EXISTING);
-      }
-    } catch (IOException e) {
-      e.printStackTrace();
-    }
-    // TODO
   }
 
   @Override

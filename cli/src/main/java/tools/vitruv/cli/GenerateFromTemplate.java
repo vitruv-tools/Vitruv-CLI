@@ -299,6 +299,14 @@ public class GenerateFromTemplate {
     writeTemplate(template, filePath, data);
   }
 
+  private String getTargetDir(String targetDir) {
+    return targetDir.replace("\\", "/").replaceAll("//+", "/");
+  }
+
+  private String getModelDirectory(String modelDirectory) {
+    return modelDirectory.replace("\\", "/").replaceAll("//+", "/");
+  }
+
   /**
    * Generates the mwe2 file.
    *
@@ -317,10 +325,10 @@ public class GenerateFromTemplate {
       items.add(
           Map.of(
               "targetDir",
-              config.getLocalPath().toString().trim(),
+              getTargetDir(config.getLocalPath().toString().trim()),
               "modelName",
               model.genmodel().getName(),
-              "modelDirectory", model.modelDirectory().trim(),
+              "modelDirectory", getModelDirectory(model.modelDirectory().trim()),
               "packageName",
               config.getPackageName().trim().concat(".model")));
     }
