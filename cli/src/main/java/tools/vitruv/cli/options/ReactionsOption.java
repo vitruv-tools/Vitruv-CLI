@@ -28,16 +28,6 @@ abstract class ReactionsOption extends VitruvCLIOption {
           name.substring(0, 1).toUpperCase()
               + name.substring(1)
               + "ChangePropagationSpecification");
-      FileUtils.addJarToClassPath(
-          new File("").getAbsolutePath().toString()
-              + "/"
-              + getPath(cmd, builder)
-              + "/model/target/tools.vitruv.methodologisttemplate.model-0.1.0-SNAPSHOT.jar");
-      FileUtils.addJarToClassPath(
-          new File("").getAbsolutePath().toString()
-              + "/"
-              + getPath(cmd, builder)
-              + "/consistency/target/tools.vitruv.methodologisttemplate.consistency-0.1.0-SNAPSHOT.jar");
       loadedClass =
           (ChangePropagationSpecification)
               FileUtils.CLASS_LOADER
@@ -57,5 +47,18 @@ abstract class ReactionsOption extends VitruvCLIOption {
     // add that to the
     // classpath as well as the builder
     return loadedClass;
+  }
+
+  protected void registerJarsToClasspath(CommandLine cmd, VirtualModelBuilder builder) {
+    FileUtils.addJarToClassPath(
+        new File("").getAbsolutePath().toString()
+            + "/"
+            + getPath(cmd, builder)
+            + "/model/target/tools.vitruv.methodologisttemplate.model-0.1.0-SNAPSHOT.jar");
+    FileUtils.addJarToClassPath(
+        new File("").getAbsolutePath().toString()
+            + "/"
+            + getPath(cmd, builder)
+            + "/consistency/target/tools.vitruv.methodologisttemplate.consistency-0.1.0-SNAPSHOT.jar");
   }
 }

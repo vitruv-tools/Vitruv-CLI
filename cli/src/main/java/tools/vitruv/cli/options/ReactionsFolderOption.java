@@ -47,6 +47,7 @@ public class ReactionsFolderOption extends ReactionsOption {
   @Override
   public VirtualModelBuilder postBuild(CommandLine cmd, VirtualModelBuilder builder,
           VitruvConfiguration configuration) {
+    registerJarsToClasspath(cmd, builder);
     List<ChangePropagationSpecification> specifications = allReactionsFiles
         .stream()
         .map(reactionsFile -> getCPSForReactionsFile(reactionsFile, cmd, builder))

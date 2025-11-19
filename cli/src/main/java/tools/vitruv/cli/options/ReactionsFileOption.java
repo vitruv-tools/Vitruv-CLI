@@ -26,6 +26,7 @@ public class ReactionsFileOption extends ReactionsOption {
   @Override
   public VirtualModelBuilder postBuild(
       CommandLine cmd, VirtualModelBuilder builder, VitruvConfiguration configuration) {
+    registerJarsToClasspath(cmd, builder);
     ChangePropagationSpecification loadedClass = getCPSForReactionsFile(
         reactionsFile, cmd, builder);
     return builder.withChangePropagationSpecification(loadedClass);
