@@ -60,8 +60,7 @@ public class MetamodelOption extends VitruvCLIOption {
         nsUri = ePackage.getNsURI();
 
       }
-      if (!resource.getContents().isEmpty() && resource.getContents().get(0) instanceof GenModel) {
-        GenModel genModel = (GenModel) resource.getContents().get(0);
+      if (!resource.getContents().isEmpty() && resource.getContents().get(0) instanceof GenModel genModel) {
         modelDirectory = genModel.getModelDirectory();
 
       }

@@ -57,7 +57,6 @@ public class VitruvConfiguration {
   }
 
   private File workflow;
-  private String modelDirectory;
 
   /**
    * Returns the workflow of the configuration.
@@ -103,7 +102,7 @@ public class VitruvConfiguration {
       ResourceSet resourceSet = new ResourceSetImpl();
       URI uri = URI.createFileURI(metamodel.getAbsolutePath().trim());
       Resource resource = resourceSet.getResource(uri, true);
-      if (!resource.getContents().isEmpty() && resource.getContents().get(0) instanceof EPackage ePackage) {
+      if (!resource.getContents().isEmpty() && resource.getContents().get(0) instanceof EPackage) {
         // Load the GenModel to get the modelPluginID
         URI genmodelURI = URI.createFileURI(genmodel.getAbsolutePath());
         Resource genmodelResource = resourceSet.getResource(genmodelURI, true);
