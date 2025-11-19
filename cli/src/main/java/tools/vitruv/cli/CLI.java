@@ -32,7 +32,7 @@ public class CLI {
    *
    * @param args The command line arguments.
    */
-  public static void main(String[] args) {
+  public static void main(String[] args) throws ParseException, MissingModelException {
     new CLI().parseCLI(args);
   }
 
@@ -41,8 +41,10 @@ public class CLI {
    * build of the project.
    *
    * @param args The command line arguments.
+   * @throws ParseException if the command line arguments are malformed
+   * @throws MissingModelException if no metamodels exist under the underlying path.
    */
-  public void parseCLI(String[] args) {
+  public void parseCLI(String[] args) throws ParseException, MissingModelException {
     Options options = new Options();
     options.addOption(new MetamodelOption());
     options.addOption(new FolderOption());
@@ -99,12 +101,18 @@ public class CLI {
         ((VitruvCLIOption) option).postBuild(line, builder, configuration);
       }
       System.out.println(builder.buildAndInitialize());
-    } catch (ParseException exp) {
-      System.out.println("Parsing failed.  Reason: " + exp.getMessage());
-    } catch (IOException | InterruptedException e) {
-      System.out.println("Invoking maven to build the project failed.  Reason: " + e.getMessage());
-    } catch (MissingModelException e) {
-      System.out.println("Generating files failed (missing models).  Reason: " + e.getMessage());
+
+    // Error Handling
+    } catch (ParseException parseExp) {
+      System.out.println("Parsing failed.  Reason: " + parseExp.getMessage());
+      throw parseExp;
+    } catch (IOException | InterruptedException mavenExp) {
+      System.out.println("Invoking maven to build the project failed.  Reason: " 
+          + mavenExp.getMessage());
+    } catch (MissingModelException modelMissingExp) {
+      System.out.println("Generating files failed (missing models).  Reason: "
+          + modelMissingExp.getMessage());
+      throw modelMissingExp;
     }
   }
 
