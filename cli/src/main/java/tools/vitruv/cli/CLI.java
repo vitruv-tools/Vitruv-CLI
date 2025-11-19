@@ -8,13 +8,15 @@ import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.Option;
+import org.apache.commons.cli.OptionGroup;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import tools.vitruv.cli.configuration.VitruvConfiguration;
 import tools.vitruv.cli.exceptions.MissingModelException;
 import tools.vitruv.cli.options.FolderOption;
 import tools.vitruv.cli.options.MetamodelOption;
-import tools.vitruv.cli.options.ReactionOption;
+import tools.vitruv.cli.options.ReactionsFileOption;
+import tools.vitruv.cli.options.ReactionsFolderOption;
 import tools.vitruv.cli.options.UserInteractorOption;
 import tools.vitruv.cli.options.VitruvCLIOption;
 import tools.vitruv.framework.vsum.VirtualModelBuilder;
@@ -46,10 +48,16 @@ public class CLI {
    */
   public void parseCLI(String[] args) throws ParseException, MissingModelException {
     Options options = new Options();
+    // Metamodels are required, V-SUM folder, User Interaction
     options.addOption(new MetamodelOption());
     options.addOption(new FolderOption());
     options.addOption(new UserInteractorOption());
-    options.addOption(new ReactionOption());
+    // One reactions file or folder is required
+    OptionGroup reactionsOptions = new OptionGroup();
+    reactionsOptions.addOption(new ReactionsFileOption())
+      .addOption(new ReactionsFolderOption());
+    reactionsOptions.setRequired(true);
+    options.addOptionGroup(reactionsOptions);
     CommandLineParser parser = new DefaultParser();
     VitruvConfiguration configuration = new VitruvConfiguration();
 

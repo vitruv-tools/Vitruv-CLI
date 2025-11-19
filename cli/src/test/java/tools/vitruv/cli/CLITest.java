@@ -13,15 +13,15 @@ public class CLITest {
   /**
    * Path to all V-SUMM elements.
    */
-  private static final String RESOURCES = "src/test/resources";
+  private static final String RESOURCES = "src/test/resources/";
   /**
    * Path to all metamodels.
    */
-  private static final String MODELS = RESOURCES + "/model";
+  private static final String MODELS = RESOURCES + "model/";
   /**
    * Path to all Reactions.
    */
-  private static final String REACTIONS = RESOURCES + "/consistency";
+  private static final String REACTIONS = RESOURCES + "consistency/";
 
   @Test
   @DisplayName("succeeds with creating a simple V-SUM")
@@ -53,10 +53,10 @@ public class CLITest {
           "target/internal/",
           "-u",
           "default",
-          "-R",
+          "-rs",
           REACTIONS
         })
-      );
+    );
   }
 
   @Test

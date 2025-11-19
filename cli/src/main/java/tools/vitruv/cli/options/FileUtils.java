@@ -35,13 +35,8 @@ public final class FileUtils {
    * @return The target file.
    */
   public static File copyFile(String filePath, Path folderPath, String relativeSubfolder) {
-    File source;
+    File source = getFile(filePath);
     File target;
-    if (new File(filePath).isAbsolute()) {
-      source = Path.of(filePath).toFile();
-    } else {
-      source = Path.of(new File("").getAbsolutePath().trim() + "/" + filePath.trim()).toFile();
-    }
     if (folderPath.isAbsolute()) {
       target =
           Path.of(folderPath.toString().trim() + "/" + relativeSubfolder + source.getName().trim())
@@ -68,6 +63,22 @@ public final class FileUtils {
       e.printStackTrace();
     }
     return target;
+  }
+
+  /**
+   * Creates a new File under <code>filePath</code>.
+   * Accounts for the case where <code>filePath</code> is relative, in which case we
+   * convert it to an absolute path.
+   *
+   * @param filePath - String
+   * @return new File
+   */
+  public static File getFile(String filePath) {
+    if (new File(filePath).isAbsolute()) {
+      return Path.of(filePath).toFile();
+    } else {
+      return Path.of(new File("").getAbsolutePath().trim() + "/" + filePath.trim()).toFile();
+    }
   }
 
   /**
@@ -127,7 +138,7 @@ public final class FileUtils {
   }
 
   /**
-   * Adding Jar to a class path.
+   * Adds a JAR to a class path.
    *
    * @param jarPath The path of the JAR file that should be added to the class path.
    */
