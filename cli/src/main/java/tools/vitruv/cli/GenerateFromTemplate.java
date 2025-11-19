@@ -299,12 +299,8 @@ public class GenerateFromTemplate {
     writeTemplate(template, filePath, data);
   }
 
-  private String getTargetDir(String targetDir) {
+  private String getNormalizedDirectoryString(String targetDir) {
     return targetDir.replace("\\", "/").replaceAll("//+", "/");
-  }
-
-  private String getModelDirectory(String modelDirectory) {
-    return modelDirectory.replace("\\", "/").replaceAll("//+", "/");
   }
 
   /**
@@ -325,10 +321,10 @@ public class GenerateFromTemplate {
       items.add(
           Map.of(
               "targetDir",
-              getTargetDir(config.getLocalPath().toString().trim()),
+              getNormalizedDirectoryString(config.getLocalPath().toString().trim()),
               "modelName",
               model.genmodel().getName(),
-              "modelDirectory", getModelDirectory(model.modelDirectory().trim()),
+              "modelDirectory", getNormalizedDirectoryString(model.modelDirectory().trim()),
               "packageName",
               config.getPackageName().trim().concat(".model")));
     }
