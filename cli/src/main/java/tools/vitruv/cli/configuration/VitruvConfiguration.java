@@ -22,7 +22,7 @@ import org.eclipse.emf.ecore.xmi.impl.XMIResourceFactoryImpl;
 public class VitruvConfiguration {
   private Path localPath;
   private String packageName;
-  
+
   private static final Logger logger = Logger.getLogger(VitruvConfiguration.class.getName());
 
   /**
@@ -83,6 +83,7 @@ public class VitruvConfiguration {
    */
   public void setMetaModelLocations(String paths) {
     // Register the GenModel resource factory
+    String nsUri = "";
     Resource.Factory.Registry reg = Resource.Factory.Registry.INSTANCE;
     reg.getExtensionToFactoryMap().put("ecore", new XMIResourceFactoryImpl());
     reg.getExtensionToFactoryMap().put("genmodel", new XMIResourceFactoryImpl());
@@ -95,13 +96,13 @@ public class VitruvConfiguration {
       String genmodelPath = modelPaths.split(",")[1];
       File metamodel = new File(metamodelPath);
       File genmodel = new File(genmodelPath);
+      String localModelDirectory = "";
 
       // getting the URI from the genmodels
       ResourceSet resourceSet = new ResourceSetImpl();
       URI uri = URI.createFileURI(metamodel.getAbsolutePath().trim());
       Resource resource = resourceSet.getResource(uri, true);
-      if (!resource.getContents().isEmpty() && resource.getContents().get(0) instanceof EPackage ePackage) {
-        this.addMetamodelLocations(new MetamodelLocation(metamodel, genmodel, ePackage.getNsURI()));
+      if (!resource.getContents().isEmpty() && resource.getContents().get(0) instanceof EPackage) {
         // Load the GenModel to get the modelPluginID
         URI genmodelURI = URI.createFileURI(genmodel.getAbsolutePath());
         Resource genmodelResource = resourceSet.getResource(genmodelURI, true);
@@ -110,8 +111,10 @@ public class VitruvConfiguration {
           String packageString = removeLastSegment(genModel.getModelPluginID());
           logger.info("--------------------->>>>  " + packageString);
           this.setPackageName(packageString);
+          localModelDirectory = genModel.getModelDirectory();
         }
       }
+      this.addMetamodelLocations(new MetamodelLocation(metamodel, genmodel, nsUri, localModelDirectory));
     }
   }
 
@@ -156,4 +159,5 @@ public class VitruvConfiguration {
   public void setPackageName(String packageName) {
     this.packageName = packageName.replace("\\s", "");
   }
+
 }

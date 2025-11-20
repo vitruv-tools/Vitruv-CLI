@@ -1,7 +1,9 @@
 package tools.vitruv.cli.options;
 
 import java.io.File;
+
 import org.apache.commons.cli.CommandLine;
+
 import tools.vitruv.change.propagation.ChangePropagationSpecification;
 import tools.vitruv.cli.configuration.VitruvConfiguration;
 import tools.vitruv.framework.vsum.VirtualModelBuilder;
@@ -19,9 +21,8 @@ public class ReactionOption extends VitruvCLIOption {
   public VirtualModelBuilder applyInternal(
       CommandLine cmd, VirtualModelBuilder builder, VitruvConfiguration configuration) {
     String reactionsPath = cmd.getOptionValue(getOpt());
-    reactionsFile =
-        FileUtils.copyFile(
-            reactionsPath, getPath(cmd, builder), "/consistency/src/main/reactions/");
+    reactionsFile = FileUtils.copyFile(
+        reactionsPath, getPath(cmd, builder), "/consistency/src/main/reactions/");
     return builder;
   }
 
@@ -45,18 +46,16 @@ public class ReactionOption extends VitruvCLIOption {
               + "/"
               + getPath(cmd, builder)
               + "/consistency/target/tools.vitruv.methodologisttemplate.consistency-0.1.0-SNAPSHOT.jar");
-      loadedClass =
-          (ChangePropagationSpecification)
-              FileUtils.CLASS_LOADER
-                  .loadClass(
-                      "mir.reactions."
-                          + name
-                          + "."
-                          + name.substring(0, 1).toUpperCase()
-                          + name.substring(1)
-                          + "ChangePropagationSpecification")
-                  .getDeclaredConstructor()
-                  .newInstance();
+      loadedClass = (ChangePropagationSpecification) FileUtils.CLASS_LOADER
+          .loadClass(
+              "mir.reactions."
+                  + name
+                  + "."
+                  + name.substring(0, 1).toUpperCase()
+                  + name.substring(1)
+                  + "ChangePropagationSpecification")
+          .getDeclaredConstructor()
+          .newInstance();
       System.out.println("that works");
     } catch (Exception e) {
       e.printStackTrace();
@@ -69,5 +68,6 @@ public class ReactionOption extends VitruvCLIOption {
   }
 
   @Override
-  public void prepare(CommandLine cmd, VitruvConfiguration configuration) {}
+  public void prepare(CommandLine cmd, VitruvConfiguration configuration) {
+  }
 }

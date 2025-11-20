@@ -47,6 +47,7 @@ public final class FileUtils {
           Path.of(folderPath.toString().trim() + "/" + relativeSubfolder + source.getName().trim())
               .toFile();
     } else {
+
       target =
           Path.of(
                   new File("").getAbsolutePath().trim()
