@@ -27,7 +27,7 @@ public class GenerateFromTemplate {
 
   private static final Logger logger = Logger.getLogger(GenerateFromTemplate.class.getName());
   private static final String PACKAGE_NAME = "packageName";
-  
+
   private Configuration getConfiguration() {
     Configuration cfg = new Configuration(Configuration.VERSION_2_3_31);
     cfg.setDefaultEncoding("UTF-8");
@@ -299,6 +299,10 @@ public class GenerateFromTemplate {
     writeTemplate(template, filePath, data);
   }
 
+  private String getNormalizedDirectoryString(String targetDir) {
+    return targetDir.replace("\\", "/").replaceAll("//+", "/");
+  }
+
   /**
    * Generates the mwe2 file.
    *
@@ -317,9 +321,10 @@ public class GenerateFromTemplate {
       items.add(
           Map.of(
               "targetDir",
-              config.getLocalPath().toString().trim(),
+              getNormalizedDirectoryString(config.getLocalPath().toString().trim()),
               "modelName",
               model.genmodel().getName(),
+              "modelDirectory", getNormalizedDirectoryString(model.modelDirectory().trim()),
               "packageName",
               config.getPackageName().trim().concat(".model")));
     }
