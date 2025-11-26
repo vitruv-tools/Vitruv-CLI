@@ -2,29 +2,16 @@ package tools.vitruv.cli.options;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
-import java.util.Enumeration;
-import java.util.jar.JarEntry;
-import java.util.jar.JarFile;
 import java.util.logging.Logger;
-import tools.vitruv.cli.configuration.CustomClassLoader;
 
 /** The FileUtils class provides utility methods for file operations. */
 public final class FileUtils {
-
   private static final Logger logger = Logger.getLogger(FileUtils.class.getName());
 
   private FileUtils() {}
-
-  /**
-   * The CLASS_LOADER is used to load classes from JAR files at runtime. It is used to load the
-   * classes of the virtual model builder.
-   */
-  public static final CustomClassLoader CLASS_LOADER =
-      new CustomClassLoader(new URL[] {}, ClassLoader.getSystemClassLoader());
 
   /**
    * Copy a file to a new location.
@@ -35,13 +22,8 @@ public final class FileUtils {
    * @return The target file.
    */
   public static File copyFile(String filePath, Path folderPath, String relativeSubfolder) {
-    File source;
+    File source = getFile(filePath);
     File target;
-    if (new File(filePath).isAbsolute()) {
-      source = Path.of(filePath).toFile();
-    } else {
-      source = Path.of(new File("").getAbsolutePath().trim() + "/" + filePath.trim()).toFile();
-    }
     if (folderPath.isAbsolute()) {
       target =
           Path.of(folderPath.toString().trim() + "/" + relativeSubfolder + source.getName().trim())
@@ -69,6 +51,22 @@ public final class FileUtils {
       e.printStackTrace();
     }
     return target;
+  }
+
+  /**
+   * Creates a new File under <code>filePath</code>.
+   * Accounts for the case where <code>filePath</code> is relative, in which case we
+   * convert it to an absolute path.
+   *
+   * @param filePath - String
+   * @return new File
+   */
+  public static File getFile(String filePath) {
+    if (new File(filePath).isAbsolute()) {
+      return Path.of(filePath).toFile();
+    } else {
+      return Path.of(new File("").getAbsolutePath().trim() + "/" + filePath.trim()).toFile();
+    }
   }
 
   /**
@@ -127,42 +125,4 @@ public final class FileUtils {
     throw new IllegalArgumentException("Option: " + option + "not found in given file!");
   }
 
-  /**
-   * Adding Jar to a class path.
-   *
-   * @param jarPath The path of the JAR file that should be added to the class path.
-   */
-  public static void addJarToClassPath(String jarPath) {
-    try {
-      URL jarUrl = new URL("file:///" + jarPath);
-      CLASS_LOADER.addJar(jarUrl);
-    } catch (Exception e) {
-      e.printStackTrace();
-    }
-
-    try {
-      // Open the JAR file
-      JarFile jarFile = new JarFile(new File(jarPath));
-
-      // Get the entries in the JAR file
-      Enumeration<JarEntry> entries = jarFile.entries();
-
-      // Iterate through the entries
-      while (entries.hasMoreElements()) {
-        JarEntry entry = entries.nextElement();
-
-        // Check if the entry is a class file
-        if (entry.getName().endsWith(".class")) {
-          // Print the class name
-          String className = entry.getName().replace("/", ".").replace(".class", "");
-          logger.info(className);
-        }
-      }
-
-      // Close the JAR file
-      jarFile.close();
-    } catch (IOException e) {
-      e.printStackTrace();
-    }
-  }
 }
