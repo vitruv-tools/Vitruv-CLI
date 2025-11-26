@@ -5,6 +5,7 @@ import java.io.File;
 import org.apache.commons.cli.CommandLine;
 
 import tools.vitruv.change.propagation.ChangePropagationSpecification;
+import tools.vitruv.cli.configuration.CustomClassLoader;
 import tools.vitruv.framework.vsum.VirtualModelBuilder;
 
 /**
@@ -12,11 +13,16 @@ import tools.vitruv.framework.vsum.VirtualModelBuilder;
  * V-SUM to build.
  */
 abstract class ReactionsOption extends VitruvCLIOption {
+  private final CustomClassLoader classLoader;
+  /**
+   * File path to store generated reactions file in.
+   */
   public static final String REACTIONS_FILE_PATH = "/consistency/src/main/reactions/";
 
   protected ReactionsOption(String abbreviationName, String longName,
-      boolean hasArguments, String description) {
+      boolean hasArguments, String description, CustomClassLoader classLoader) {
     super(abbreviationName, longName, hasArguments, description);
+    this.classLoader = classLoader;
   }
 
   protected ChangePropagationSpecification getCPSForReactionsFile(File reactionsFile,
@@ -30,7 +36,7 @@ abstract class ReactionsOption extends VitruvCLIOption {
               + "ChangePropagationSpecification");
       loadedClass =
           (ChangePropagationSpecification)
-              FileUtils.CLASS_LOADER
+              classLoader
                   .loadClass(
                       "mir.reactions."
                           + name
@@ -50,12 +56,12 @@ abstract class ReactionsOption extends VitruvCLIOption {
   }
 
   protected void registerJarsToClasspath(CommandLine cmd, VirtualModelBuilder builder) {
-    FileUtils.addJarToClassPath(
+    classLoader.addJarToClassPath(
         new File("").getAbsolutePath().toString()
             + "/"
             + getPath(cmd, builder)
             + "/model/target/tools.vitruv.methodologisttemplate.model-0.1.0-SNAPSHOT.jar");
-    FileUtils.addJarToClassPath(
+    classLoader.addJarToClassPath(
         new File("").getAbsolutePath().toString()
             + "/"
             + getPath(cmd, builder)

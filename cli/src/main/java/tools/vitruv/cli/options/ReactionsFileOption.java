@@ -3,14 +3,23 @@ package tools.vitruv.cli.options;
 import java.io.File;
 import org.apache.commons.cli.CommandLine;
 import tools.vitruv.change.propagation.ChangePropagationSpecification;
+import tools.vitruv.cli.configuration.CustomClassLoader;
 import tools.vitruv.cli.configuration.VitruvConfiguration;
 import tools.vitruv.framework.vsum.VirtualModelBuilder;
 
+/**
+ * Option to add a single Reactions file to the V-SUMM to build.
+ */
 public class ReactionsFileOption extends ReactionsOption {
   private File reactionsFile;
 
-  public ReactionsFileOption() {
-    super("r", "reaction", true, "The path to the file the Reactions are stored in.");
+  /**
+   * Creates the ReactionsFileOption.
+   *
+   * @param classLoader - {@link CustomClassLoader}
+   */
+  public ReactionsFileOption(CustomClassLoader classLoader) {
+    super("r", "reaction", true, "The path to the file the Reactions are stored in.", classLoader);
   }
 
   @Override

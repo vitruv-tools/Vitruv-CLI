@@ -2,29 +2,16 @@ package tools.vitruv.cli.options;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
-import java.util.Enumeration;
-import java.util.jar.JarEntry;
-import java.util.jar.JarFile;
 import java.util.logging.Logger;
-import tools.vitruv.cli.configuration.CustomClassLoader;
 
 /** The FileUtils class provides utility methods for file operations. */
 public final class FileUtils {
-
   private static final Logger logger = Logger.getLogger(FileUtils.class.getName());
 
   private FileUtils() {}
-
-  /**
-   * The CLASS_LOADER is used to load classes from JAR files at runtime. It is used to load the
-   * classes of the virtual model builder.
-   */
-  public static final CustomClassLoader CLASS_LOADER =
-      new CustomClassLoader(new URL[] {}, ClassLoader.getSystemClassLoader());
 
   /**
    * Copy a file to a new location.
@@ -137,42 +124,4 @@ public final class FileUtils {
     throw new IllegalArgumentException("Option: " + option + "not found in given file!");
   }
 
-  /**
-   * Adds a JAR to a class path.
-   *
-   * @param jarPath The path of the JAR file that should be added to the class path.
-   */
-  public static void addJarToClassPath(String jarPath) {
-    try {
-      URL jarUrl = new URL("file:///" + jarPath);
-      CLASS_LOADER.addJar(jarUrl);
-    } catch (Exception e) {
-      e.printStackTrace();
-    }
-
-    try {
-      // Open the JAR file
-      JarFile jarFile = new JarFile(new File(jarPath));
-
-      // Get the entries in the JAR file
-      Enumeration<JarEntry> entries = jarFile.entries();
-
-      // Iterate through the entries
-      while (entries.hasMoreElements()) {
-        JarEntry entry = entries.nextElement();
-
-        // Check if the entry is a class file
-        if (entry.getName().endsWith(".class")) {
-          // Print the class name
-          String className = entry.getName().replace("/", ".").replace(".class", "");
-          logger.info(className);
-        }
-      }
-
-      // Close the JAR file
-      jarFile.close();
-    } catch (IOException e) {
-      e.printStackTrace();
-    }
-  }
 }

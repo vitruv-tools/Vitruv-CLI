@@ -4,6 +4,8 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.net.URL;
+
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
@@ -11,6 +13,8 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.OptionGroup;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
+
+import tools.vitruv.cli.configuration.CustomClassLoader;
 import tools.vitruv.cli.configuration.VitruvConfiguration;
 import tools.vitruv.cli.exceptions.MissingModelException;
 import tools.vitruv.cli.options.FolderOption;
@@ -27,6 +31,13 @@ import tools.vitruv.framework.vsum.VirtualModelBuilder;
  * build of the project.
  */
 public class CLI {
+
+  /**
+   * The CLASS_LOADER is used to load classes from JAR files at runtime. It is used to load the
+   * classes of the virtual model builder.
+   */
+  private CustomClassLoader classLoader = 
+      new CustomClassLoader(new URL[] {}, ClassLoader.getSystemClassLoader());
 
   /**
    * The main method of the CLI class. It parses the command line arguments and triggers the
@@ -54,8 +65,10 @@ public class CLI {
     options.addOption(new UserInteractorOption());
     // One reactions file or folder is required
     OptionGroup reactionsOptions = new OptionGroup();
-    reactionsOptions.addOption(new ReactionsFileOption())
-      .addOption(new ReactionsFolderOption());
+    reactionsOptions
+        .addOption(new ReactionsFileOption(classLoader))
+        .addOption(new ReactionsFolderOption(classLoader));
+  
     reactionsOptions.setRequired(true);
     options.addOptionGroup(reactionsOptions);
     CommandLineParser parser = new DefaultParser();

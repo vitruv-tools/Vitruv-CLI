@@ -5,8 +5,8 @@ import java.io.FileFilter;
 import java.util.ArrayList;
 import java.util.List;
 import org.apache.commons.cli.CommandLine;
-
 import tools.vitruv.change.propagation.ChangePropagationSpecification;
+import tools.vitruv.cli.configuration.CustomClassLoader;
 import tools.vitruv.cli.configuration.VitruvConfiguration;
 import tools.vitruv.framework.vsum.VirtualModelBuilder;
 
@@ -21,9 +21,12 @@ public class ReactionsFolderOption extends ReactionsOption {
 
   /**
    * Creates the ReactionsOption.
+   *
+   * @param classLoader - {@link CustomClassLoader}
    */
-  public ReactionsFolderOption() {
-    super("rs", "reactions", true, "The path to the folder the Reactions files are stored in.");
+  public ReactionsFolderOption(CustomClassLoader classLoader) {
+    super("rs", "reactions", true, 
+        "The path to the folder the Reactions files are stored in.", classLoader);
   }
 
   @Override
