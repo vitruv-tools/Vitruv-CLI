@@ -108,11 +108,12 @@ public class GenerateFromTemplate {
    * @param packageName The package name from the genmodel.
    * @throws IOException If the file cannot be written.
    */
-  public void generateVsumExample(File filePath, String packageName) throws IOException {
+  public void generateVsumExample(File filePath, String packageName, List<String> models) throws IOException {
     Configuration cfg = getConfiguration();
 
     Map<String, Object> data = new HashMap<>();
     data.put("packageName", packageName.trim());
+    data.put("models", models);
 
     Template template = null;
     try {

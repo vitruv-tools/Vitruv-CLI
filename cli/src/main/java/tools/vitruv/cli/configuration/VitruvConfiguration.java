@@ -22,6 +22,7 @@ import org.eclipse.emf.ecore.xmi.impl.XMIResourceFactoryImpl;
 public class VitruvConfiguration {
   private Path localPath;
   private String packageName;
+  private final List<String> modelNames = new ArrayList<>();
 
   private static final Logger logger = Logger.getLogger(VitruvConfiguration.class.getName());
 
@@ -35,6 +36,15 @@ public class VitruvConfiguration {
   }
 
   /**
+   * Returns the model names.
+   * 
+   * @return The list of model names.
+   */
+  public List<String> getModelNames() {
+    return modelNames;
+  }
+
+  /**
    * Sets the local path of the configuration.
    *
    * @param localPath The local path of the configuration.
@@ -43,7 +53,7 @@ public class VitruvConfiguration {
     this.localPath = localPath;
   }
 
-  private List<MetamodelLocation> metamodelLocations = new ArrayList<>();
+  private final List<MetamodelLocation> metamodelLocations = new ArrayList<>();
 
   /**
    * Adds a metamodel location to the configuration.
@@ -102,10 +112,12 @@ public class VitruvConfiguration {
       ResourceSet resourceSet = new ResourceSetImpl();
       URI uri = URI.createFileURI(metamodel.getAbsolutePath().trim());
       Resource resource = resourceSet.getResource(uri, true);
-      if (!resource.getContents().isEmpty() && resource.getContents().get(0) instanceof EPackage) {
+      if (!resource.getContents().isEmpty() && resource.getContents().get(0) instanceof EPackage ePackage) {
         // Load the GenModel to get the modelPluginID
         URI genmodelURI = URI.createFileURI(genmodel.getAbsolutePath());
+        nsUri = genmodelURI.toString();
         Resource genmodelResource = resourceSet.getResource(genmodelURI, true);
+        modelNames.add(ePackage.getName());
         if (!genmodelResource.getContents().isEmpty()
             && genmodelResource.getContents().get(0) instanceof GenModel genModel) {
           String packageString = removeLastSegment(genModel.getModelPluginID());

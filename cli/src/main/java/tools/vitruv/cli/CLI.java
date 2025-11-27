@@ -4,12 +4,14 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
+
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
+
 import tools.vitruv.cli.configuration.VitruvConfiguration;
 import tools.vitruv.cli.exceptions.MissingModelException;
 import tools.vitruv.cli.options.FolderOption;
@@ -20,14 +22,17 @@ import tools.vitruv.cli.options.VitruvCLIOption;
 import tools.vitruv.framework.vsum.VirtualModelBuilder;
 
 /**
- * The CLI class is the main entry point for the command line interface of the Vitruv framework. It
- * parses the command line arguments and triggers the generation of the necessary files and the
+ * The CLI class is the main entry point for the command line interface of the
+ * Vitruv framework. It
+ * parses the command line arguments and triggers the generation of the
+ * necessary files and the
  * build of the project.
  */
 public class CLI {
 
   /**
-   * The main method of the CLI class. It parses the command line arguments and triggers the
+   * The main method of the CLI class. It parses the command line arguments and
+   * triggers the
    * generation of the necessary files and the build of the project.
    *
    * @param args The command line arguments.
@@ -37,7 +42,8 @@ public class CLI {
   }
 
   /**
-   * Parses the command line arguments and triggers the generation of the necessary files and the
+   * Parses the command line arguments and triggers the generation of the
+   * necessary files and the
    * build of the project.
    *
    * @param args The command line arguments.
@@ -156,7 +162,7 @@ public class CLI {
 
     generateFromTemplate.generateVsumExample(
         new File((configuration.getLocalPath() + "/vsum/src/main/java/VSUMExample.java").trim()),
-        configuration.getPackageName());
+        configuration.getPackageName(), configuration.getModelNames());
     System.out.println("Generating vsum example java class");
 
     generateFromTemplate.generateVsumTest(
@@ -169,8 +175,7 @@ public class CLI {
         new File((configuration.getLocalPath() + "/model/.project").trim()),
         configuration.getPackageName());
     System.out.println("Generating project file");
-    File workflow =
-        new File((configuration.getLocalPath() + "/model/workflow/generate.mwe2").trim());
+    File workflow = new File((configuration.getLocalPath() + "/model/workflow/generate.mwe2").trim());
     configuration.setWorkflow(workflow);
 
     generateFromTemplate.generateMwe2(
