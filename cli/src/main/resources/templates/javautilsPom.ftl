@@ -39,28 +39,13 @@
     <repo.sdq-commons.version>2.2.0</repo.sdq-commons.version>
   </properties>
 
-  <repositories>
-    <repository>
-      <id>sdq-commons</id>
-      <name>SDQ Commons</name>
-      <url>https://kit-sdq.github.io/updatesite/release/commons/${repo.sdq-commons.version}</url>
-      <layout>p2</layout>
-    </repository>
-  </repositories>
 
   <dependencies>
-    <dependency>
-      <groupId>sdq-commons</groupId>
-      <artifactId>edu.kit.ipd.sdq.commons.util.java</artifactId>
-      <version>2.3.0.202304271319</version>
-      <exclusions>
-        <!-- exclude unnecessary transitive dependencies from sdq-commons p2 repository -->
-        <exclusion>
-          <groupId>*</groupId>
-          <artifactId>*</artifactId>
-        </exclusion>
-      </exclusions>
-    </dependency>
+<dependency>
+    <groupId>tools.vitruv</groupId>
+    <artifactId>tools.vitruv.dsls.p2wrappers.javautils</artifactId>
+    <version>3.2.3</version>
+</dependency>
   </dependencies>
 </project>
 </#noparse>

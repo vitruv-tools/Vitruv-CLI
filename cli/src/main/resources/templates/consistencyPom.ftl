@@ -12,7 +12,7 @@
     <artifactId>${packageName}.consistency</artifactId>
     <#noparse>
         <name>Consistency</name>
-        <description />
+        <description>consistency module</description>
 
         <dependencies>
         <!-- project dependencies-->
@@ -95,17 +95,17 @@
         <dependency>
             <groupId>tools.vitruv</groupId>
             <artifactId>tools.vitruv.dsls.reactions.language</artifactId>
-            <version>3.1.0</version>
+            <version>3.2.3</version>
         </dependency>
         <dependency>
             <groupId>tools.vitruv</groupId>
             <artifactId>tools.vitruv.dsls.reactions.runtime</artifactId>
-            <version>3.1.0</version>
+            <version>3.2.3</version>
         </dependency>
         <dependency>
             <groupId>tools.vitruv</groupId>
             <artifactId>tools.vitruv.dsls.common</artifactId>
-            <version>3.1.0</version>
+            <version>3.2.3</version>
         </dependency>
         <dependency>
         <groupId>${project.groupId}</groupId>

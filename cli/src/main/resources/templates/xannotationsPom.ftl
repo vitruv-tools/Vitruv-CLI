@@ -35,25 +35,12 @@
     </plugins>
   </build>
 
-  <properties>
-    <repo.xannotations.version>1.6.0</repo.xannotations.version>
-  </properties>
-
-  <repositories>
-    <repository>
-      <id>xannotations</id>
-      <name>XAnnotations</name>
-      <layout>p2</layout>
-      <url>https://kit-sdq.github.io/updatesite/release/xannotations/${repo.xannotations.version}</url>
-    </repository>
-  </repositories>
-
   <dependencies>
-    <dependency>
-      <groupId>xannotations</groupId>
-      <artifactId>edu.kit.ipd.sdq.activextendannotations</artifactId>
-      <version>1.6.0</version>
-    </dependency>
+<dependency>
+    <groupId>tools.vitruv</groupId>
+    <artifactId>tools.vitruv.dsls.p2wrappers.activextendannotations</artifactId>
+    <version>3.2.3</version>
+</dependency>
   </dependencies>
 </project>
 </noparse>
