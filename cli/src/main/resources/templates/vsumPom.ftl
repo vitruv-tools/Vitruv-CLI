@@ -81,6 +81,14 @@
       </dependency>
       <dependency>
         <groupId>tools.vitruv</groupId>
+        <artifactId>tools.vitruv.change.interaction.model</artifactId>
+      </dependency>
+      <dependency>
+        <groupId>tools.vitruv</groupId>
+        <artifactId>tools.vitruv.change.utils</artifactId>
+      </dependency>
+      <dependency>
+        <groupId>tools.vitruv</groupId>
         <artifactId>tools.vitruv.framework.views</artifactId>
       </dependency>
       <dependency>

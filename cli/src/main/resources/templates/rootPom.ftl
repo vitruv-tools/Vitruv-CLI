@@ -32,6 +32,7 @@
 
   <properties>
     <vitruv.version>3.1.2</vitruv.version>
+    <vitruv-server.version>3.2.3</vitruv-server.version>
   </properties>
 
   <dependencyManagement>
@@ -50,6 +51,16 @@
       <dependency>
         <groupId>tools.vitruv</groupId>
         <artifactId>tools.vitruv.change.interaction</artifactId>
+        <version>${vitruv.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>tools.vitruv</groupId>
+        <artifactId>tools.vitruv.change.utils</artifactId>
+        <version>${vitruv.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>tools.vitruv</groupId>
+        <artifactId>tools.vitruv.change.interaction.model</artifactId>
         <version>${vitruv.version}</version>
       </dependency>
       <dependency>
@@ -76,6 +87,11 @@
         <groupId>tools.vitruv</groupId>
         <artifactId>tools.vitruv.framework.vsum</artifactId>
         <version>${vitruv.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>tools.vitruv</groupId>
+        <artifactId>tools.vitruv.server.remote</artifactId>
+        <version>${vitruv-server.version}</version>
       </dependency>
 
       <!-- external dependencies-->
