@@ -63,13 +63,20 @@
       <dependency>
         <groupId>tools.vitruv</groupId>
         <artifactId>tools.vitruv.server.remote</artifactId>
-        <version>3.2.0-SNAPSHOT</version>
       </dependency>
 
       <!-- Vitruvius dependencies -->
       <dependency>
         <groupId>tools.vitruv</groupId>
         <artifactId>tools.vitruv.change.interaction</artifactId>
+      </dependency>
+      <dependency>
+        <groupId>tools.vitruv</groupId>
+        <artifactId>tools.vitruv.change.interaction.model</artifactId>
+      </dependency>
+      <dependency>
+        <groupId>tools.vitruv</groupId>
+        <artifactId>tools.vitruv.change.utils</artifactId>
       </dependency>
       <dependency>
         <groupId>tools.vitruv</groupId>

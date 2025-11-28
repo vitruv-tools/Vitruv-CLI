@@ -12,7 +12,7 @@
     <artifactId>${packageName}.consistency</artifactId>
     <#noparse>
         <name>Consistency</name>
-        <description />
+        <description>consistency module</description>
 
         <dependencies>
         <!-- project dependencies-->

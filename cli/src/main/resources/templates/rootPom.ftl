@@ -23,7 +23,6 @@
   <!-- Modules -->
   <modules>
     <!-- <module>viewtype</module> -->
-    <!-- <module>vsum</module> -->
     <module>model</module>
     <module>consistency</module>
     <module>vsum</module>
