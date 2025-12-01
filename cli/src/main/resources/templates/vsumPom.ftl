@@ -43,6 +43,10 @@
   </plugins>
 </build>
 
+<properties>
+  <vitruv.version>3.2.3</vitruv.version>
+</properties>
+
 
 <dependencies>
 <!-- project dependencies -->
@@ -64,8 +68,7 @@
   <dependency>
     <groupId>tools.vitruv</groupId>
     <artifactId>tools.vitruv.server.remote</artifactId>
-    <#noparse>
-    <version>${project.version}</version>
+    <version>${vitruv.version}</version>
   </dependency>
 
   <!-- Vitruvius dependencies -->
