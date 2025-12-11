@@ -25,6 +25,7 @@ import tools.vitruv.framework.vsum.VirtualModelBuilder;
 public class MetamodelOption extends VitruvCLIOption {
   // resource/tools.vitruv.methodologisttemplate.model/src/main/ecore/model.genmodel
   public static final String SUBFOLDER = "/model/src/main/ecore/";
+  private String modelName;
 
   public MetamodelOption() {
     super(
@@ -58,7 +59,7 @@ public class MetamodelOption extends VitruvCLIOption {
       if (!resource.getContents().isEmpty() && resource.getContents().get(0) instanceof EPackage) {
         EPackage ePackage = (EPackage) resource.getContents().get(0);
         nsUri = ePackage.getNsURI();
-
+        this.modelName = ePackage.getName();
       }
       if (!resource.getContents().isEmpty() && resource.getContents().get(0) instanceof GenModel genModel) {
         modelDirectory = genModel.getModelDirectory();
@@ -99,5 +100,9 @@ public class MetamodelOption extends VitruvCLIOption {
   @Override
   public void prepare(CommandLine cmd, VitruvConfiguration configuration) {
     configuration.setMetaModelLocations(cmd.getOptionValue(getOpt()));
+  }
+
+  public String getModelName() {
+    return modelName;
   }
 }

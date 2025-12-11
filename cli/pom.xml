@@ -8,7 +8,7 @@
   <parent>
     <groupId>tools.vitruv</groupId>
     <artifactId>tools.vitruv.cli</artifactId>
-    <version>3.2.0-SNAPSHOT</version>
+    <version>3.2.4-SNAPSHOT</version>
   </parent>
 
   <artifactId>tools.vitruv.cli.cli</artifactId>
@@ -16,6 +16,13 @@
 
   <name>Vitruv command line interface</name>
   <description>The command line interface for filling out the methodologist template</description>
+
+  <properties>
+    <!-- SonarQube configuration -->
+    <sonar.host.url>https://sonarcloud.io</sonar.host.url>
+    <sonar.organization>vitruv-tools</sonar.organization>
+    <sonar.projectKey>vitruv-tools_Vitruv-CLI</sonar.projectKey>
+  </properties>
 
   <build>
     <resources>
@@ -76,12 +83,10 @@
     <dependency>
       <groupId>${project.groupId}</groupId>
       <artifactId>tools.vitruv.framework.views</artifactId>
-      <version>3.2.2</version>
     </dependency>
     <dependency>
       <groupId>${project.groupId}</groupId>
       <artifactId>tools.vitruv.framework.vsum</artifactId>
-      <version>3.2.2</version>
     </dependency>
 
     <!-- Vitruvius dependencies -->
@@ -112,8 +117,8 @@
     <dependency>
       <groupId>tools.vitruv</groupId>
       <artifactId>tools.vitruv.server.remote</artifactId>
-      <version>3.2.0-SNAPSHOT</version>
     </dependency>
+
 
     <!-- external dependencies -->
     <dependency>

@@ -8,12 +8,12 @@
     <parent>
         <groupId>tools.vitruv</groupId>
         <artifactId>parent</artifactId>
-        <version>3.2.2</version>
+        <version>3.3.2</version>
     </parent>
 
     <!-- Project Information -->
     <artifactId>tools.vitruv.cli</artifactId>
-    <version>3.2.0-SNAPSHOT</version>
+    <version>3.2.4-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <name>Vitruv CLI</name>
@@ -42,9 +42,9 @@
     </modules>
 
     <properties>
-        <vitruv.version>3.2.2</vitruv.version>
-        <vitruv-change.version>3.2.2</vitruv-change.version>
-        <vitruv-dsls.version>3.2.2</vitruv-dsls.version>
+        <vitruv.version>3.2.3</vitruv.version>
+        <vitruv-change.version>3.2.4-SNAPSHOT</vitruv-change.version>
+        <vitruv-dsls.version>3.2.3</vitruv-dsls.version>
         <sonar.host.url>https://sonarcloud.io</sonar.host.url>
         <sonar.organization>vitruv-tools</sonar.organization>
         <sonar.projectKey>vitruv-tools_Vitruv-CLI</sonar.projectKey>
@@ -122,7 +122,12 @@
             <dependency>
                 <groupId>tools.vitruv</groupId>
                 <artifactId>tools.vitruv.change.testutils</artifactId>
-                <version>3.1.0</version>
+                <version>{vitruv-change.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>tools.vitruv</groupId>
+                <artifactId>tools.vitruv.server.remote</artifactId>
+                <version>${vitruv.version}</version>
             </dependency>
 
             <!-- External dependencies -->
