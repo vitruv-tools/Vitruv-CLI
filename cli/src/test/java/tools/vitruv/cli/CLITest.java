@@ -31,22 +31,6 @@ public class CLITest {
    */
   private static final String REACTIONS = RESOURCES + "consistency/";
 
-  @AfterEach
-  void deleteVSUMDirectory() throws IOException {
-    System.out.println("Clearing directory " + TARGET_INTERNAL_PATH);
-    deleteFrom(new File(TARGET_INTERNAL_PATH));
-  }
-
-  void deleteFrom(File file) {
-    if (file.isDirectory()) {
-      var contents = file.listFiles();
-      for (var content: contents) {
-        deleteFrom(content);
-      }
-    }
-    file.delete();
-  }
-
   @Test
   @DisplayName("succeeds with creating a simple V-SUM")
   public void buildVSUM() {
