@@ -19,6 +19,12 @@
   <build>
     <plugins>
       <plugin>
+        <artifactId>maven-clean-plugin</artifactId>
+        <configuration>
+          <force>true</force>
+        </configuration>
+      </plugin>
+      <plugin>
         <groupId>org.openntf.maven</groupId>
         <artifactId>p2-layout-resolver</artifactId>
       </plugin>

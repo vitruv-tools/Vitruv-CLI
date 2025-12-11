@@ -4,19 +4,23 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.net.URL;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.Option;
+import org.apache.commons.cli.OptionGroup;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 
+import tools.vitruv.cli.configuration.CustomClassLoader;
 import tools.vitruv.cli.configuration.VitruvConfiguration;
 import tools.vitruv.cli.exceptions.MissingModelException;
 import tools.vitruv.cli.options.FolderOption;
 import tools.vitruv.cli.options.MetamodelOption;
-import tools.vitruv.cli.options.ReactionOption;
+import tools.vitruv.cli.options.ReactionsFileOption;
+import tools.vitruv.cli.options.ReactionsFolderOption;
 import tools.vitruv.cli.options.UserInteractorOption;
 import tools.vitruv.cli.options.VitruvCLIOption;
 import tools.vitruv.framework.vsum.VirtualModelBuilder;
@@ -31,13 +35,19 @@ import tools.vitruv.framework.vsum.VirtualModelBuilder;
 public class CLI {
 
   /**
-   * The main method of the CLI class. It parses the command line arguments and
-   * triggers the
+   * The CLASS_LOADER is used to load classes from JAR files at runtime. It is used to load the
+   * classes of the virtual model builder.
+   */
+  private CustomClassLoader classLoader = 
+      new CustomClassLoader(new URL[] {}, ClassLoader.getSystemClassLoader());
+
+  /**
+   * The main method of the CLI class. It parses the command line arguments and triggers the
    * generation of the necessary files and the build of the project.
    *
    * @param args The command line arguments.
    */
-  public static void main(String[] args) {
+  public static void main(String[] args) throws ParseException, MissingModelException {
     new CLI().parseCLI(args);
   }
 
@@ -47,13 +57,23 @@ public class CLI {
    * build of the project.
    *
    * @param args The command line arguments.
+   * @throws ParseException if the command line arguments are malformed
+   * @throws MissingModelException if no metamodels exist under the underlying path.
    */
-  public void parseCLI(String[] args) {
+  public void parseCLI(String[] args) throws ParseException, MissingModelException {
     Options options = new Options();
+    // Metamodels are required, V-SUM folder, User Interaction
     options.addOption(new MetamodelOption());
     options.addOption(new FolderOption());
     options.addOption(new UserInteractorOption());
-    options.addOption(new ReactionOption());
+    // One reactions file or folder is required
+    OptionGroup reactionsOptions = new OptionGroup();
+    reactionsOptions
+        .addOption(new ReactionsFileOption(classLoader))
+        .addOption(new ReactionsFolderOption(classLoader));
+  
+    reactionsOptions.setRequired(true);
+    options.addOptionGroup(reactionsOptions);
     CommandLineParser parser = new DefaultParser();
     VitruvConfiguration configuration = new VitruvConfiguration();
 
@@ -105,12 +125,18 @@ public class CLI {
         ((VitruvCLIOption) option).postBuild(line, builder, configuration);
       }
       System.out.println(builder.buildAndInitialize());
-    } catch (ParseException exp) {
-      System.out.println("Parsing failed.  Reason: " + exp.getMessage());
-    } catch (IOException | InterruptedException e) {
-      System.out.println("Invoking maven to build the project failed.  Reason: " + e.getMessage());
-    } catch (MissingModelException e) {
-      System.out.println("Generating files failed (missing models).  Reason: " + e.getMessage());
+
+    // Error Handling
+    } catch (ParseException parseExp) {
+      System.out.println("Parsing failed.  Reason: " + parseExp.getMessage());
+      throw parseExp;
+    } catch (IOException | InterruptedException mavenExp) {
+      System.out.println("Invoking maven to build the project failed.  Reason: " 
+          + mavenExp.getMessage());
+    } catch (MissingModelException modelMissingExp) {
+      System.out.println("Generating files failed (missing models).  Reason: "
+          + modelMissingExp.getMessage());
+      throw modelMissingExp;
     }
   }
 

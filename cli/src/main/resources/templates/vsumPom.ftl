@@ -19,6 +19,12 @@
 <build>
   <plugins>
     <plugin>
+        <artifactId>maven-clean-plugin</artifactId>
+        <configuration>
+          <force>true</force>
+        </configuration>
+    </plugin>
+    <plugin>
       <artifactId>maven-assembly-plugin</artifactId>
       <configuration>
         <descriptorRefs>
