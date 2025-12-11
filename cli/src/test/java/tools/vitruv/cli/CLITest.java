@@ -3,13 +3,21 @@ package tools.vitruv.cli;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+
 import org.apache.commons.cli.MissingOptionException;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import tools.vitruv.cli.exceptions.MissingModelException;
-
 public class CLITest {
+  /**
+   * Path to the built V-SUM.
+   */
+  private static final String TARGET_INTERNAL_PATH = "target/internal/";
   /**
    * Path to all V-SUMM elements.
    */
@@ -23,6 +31,22 @@ public class CLITest {
    */
   private static final String REACTIONS = RESOURCES + "consistency/";
 
+  @AfterEach
+  void deleteVSUMDirectory() throws IOException {
+    System.out.println("Clearing directory " + TARGET_INTERNAL_PATH);
+    deleteFrom(new File(TARGET_INTERNAL_PATH));
+  }
+
+  void deleteFrom(File file) {
+    if (file.isDirectory()) {
+      var contents = file.listFiles();
+      for (var content: contents) {
+        deleteFrom(content);
+      }
+    }
+    file.delete();
+  }
+
   @Test
   @DisplayName("succeeds with creating a simple V-SUM")
   public void buildVSUM() {
@@ -32,7 +56,7 @@ public class CLITest {
           MODELS + "model.ecore," + MODELS + "model.genmodel;"
               + MODELS + "model2.ecore," + MODELS + "model2.genmodel",
           "-f",
-          "target/internal/",
+          TARGET_INTERNAL_PATH,
           "-u",
           "default",
           "-r",
@@ -50,7 +74,7 @@ public class CLITest {
           MODELS + "model.ecore," + MODELS + "model.genmodel;"
               + MODELS + "model2.ecore," + MODELS + "model2.genmodel",
           "-f",
-          "target/internal/",
+          TARGET_INTERNAL_PATH,
           "-u",
           "default",
           "-rs",
@@ -64,7 +88,7 @@ public class CLITest {
   public void failWithoutMetamodels() {
     assertThrows(MissingOptionException.class, () -> CLI.main(
         new String[] {
-          "-f", "target/internal/",
+          "-f", TARGET_INTERNAL_PATH,
           "-u", "default",
           "-r", REACTIONS + "templateReactions.reactions"
         })
