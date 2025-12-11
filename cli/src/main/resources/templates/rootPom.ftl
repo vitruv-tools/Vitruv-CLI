@@ -20,6 +20,17 @@
   <name>Methodologist Template</name>
   <description />
 
+  <build>
+    <plugins>
+      <plugin>
+        <artifactId>maven-clean-plugin</artifactId>
+        <version>3.5.0</version>
+        <configuration>
+            <force>true</force>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
   <!-- Modules -->
   <modules>
     <!-- <module>viewtype</module> -->
