@@ -5,6 +5,8 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
+import lombok.Getter;
+import lombok.Setter;
 import org.eclipse.emf.codegen.ecore.genmodel.GenModel;
 import org.eclipse.emf.codegen.ecore.genmodel.GenModelPackage;
 import org.eclipse.emf.common.util.URI;
@@ -13,8 +15,6 @@ import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.resource.ResourceSet;
 import org.eclipse.emf.ecore.resource.impl.ResourceSetImpl;
 import org.eclipse.emf.ecore.xmi.impl.XMIResourceFactoryImpl;
-import lombok.Getter;
-import lombok.Setter;
 
 /** The VitruvConfiguration class is used to store the configuration of the Vitruv CLI. */
 public class VitruvConfiguration {
@@ -83,18 +83,15 @@ public class VitruvConfiguration {
       ResourceSet resourceSet = new ResourceSetImpl();
       URI uri = URI.createFileURI(metamodel.getAbsolutePath().trim());
       Resource resource = resourceSet.getResource(uri, true);
-
-      if (!resource.getContents().isEmpty() && resource.getContents().get(0) instanceof EPackage ePackage) {
+      if (!resource.getContents().isEmpty()
+          && resource.getContents().get(0) instanceof EPackage ePackage) {
         // Load the GenModel to get the modelPluginID
         URI genmodelURI = URI.createFileURI(genmodel.getAbsolutePath());
         nsUri = genmodelURI.toString();
-
         Resource genmodelResource = resourceSet.getResource(genmodelURI, true);
         modelNames.add(ePackage.getName());
-
         if (!genmodelResource.getContents().isEmpty()
             && genmodelResource.getContents().get(0) instanceof GenModel genModel) {
-
           String packageString = removeLastSegment(genModel.getModelPluginID());
           logger.info("--------------------->>>>  " + packageString);
           this.setPackageName(packageString);
