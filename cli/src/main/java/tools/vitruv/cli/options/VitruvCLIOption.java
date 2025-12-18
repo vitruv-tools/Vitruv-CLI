@@ -37,8 +37,8 @@ public abstract class VitruvCLIOption extends Option implements VirtualModelBuil
   }
 
   @Override
-  public final VirtualModelBuilder preBuild(
-      CommandLine cmd, VirtualModelBuilder builder, VitruvConfiguration configuration) {
+  public VirtualModelBuilder preBuild(
+          CommandLine cmd, VirtualModelBuilder builder, VitruvConfiguration configuration) {
     if (!cmd.hasOption(getOpt())) {
       throw new IllegalArgumentException("Command called but not present!");
     }

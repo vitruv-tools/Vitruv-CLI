@@ -5,7 +5,6 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
-
 import org.eclipse.emf.codegen.ecore.genmodel.GenModel;
 import org.eclipse.emf.codegen.ecore.genmodel.GenModelPackage;
 import org.eclipse.emf.common.util.URI;
@@ -14,82 +13,52 @@ import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.resource.ResourceSet;
 import org.eclipse.emf.ecore.resource.impl.ResourceSetImpl;
 import org.eclipse.emf.ecore.xmi.impl.XMIResourceFactoryImpl;
+import lombok.Getter;
+import lombok.Setter;
 
-/**
- * The VitruvConfiguration class is used to store the configuration of the
- * Vitruv CLI.
- */
+/** The VitruvConfiguration class is used to store the configuration of the Vitruv CLI. */
 public class VitruvConfiguration {
-  private Path localPath;
-  private String packageName;
-  private final List<String> modelNames = new ArrayList<>();
 
   private static final Logger logger = Logger.getLogger(VitruvConfiguration.class.getName());
 
   /**
-   * Returns the local path of the configuration.
+   * -- SETTER -- Sets the local path of the configuration.
    *
-   * @return The local path of the configuration.
+   * <p>-- GETTER -- Returns the local path of the configuration.
    */
-  public Path getLocalPath() {
-    return localPath;
-  }
+  @Getter @Setter private Path localPath;
+
+  /** -- GETTER -- Returns the package name. */
+  @Getter private String packageName;
 
   /**
-   * Returns the model names.
-   * 
-   * @return The list of model names.
-   */
-  public List<String> getModelNames() {
-    return modelNames;
-  }
-
-  /**
-   * Sets the local path of the configuration.
+   * -- SETTER -- Sets the workflow of the configuration.
    *
-   * @param localPath The local path of the configuration.
+   * <p>-- GETTER -- Returns the workflow of the configuration.
    */
-  public void setLocalPath(Path localPath) {
-    this.localPath = localPath;
-  }
+  @Getter @Setter private File workflow;
+
+  /** -- GETTER -- Returns the model names. */
+  @Getter private final List<String> modelNames = new ArrayList<>();
 
   private final List<MetamodelLocation> metamodelLocations = new ArrayList<>();
+
+  /** -- GETTER -- Returns the reaction file locations used by the CLI. */
+  @Getter private final List<Path> reactionLocations = new ArrayList<>();
 
   /**
    * Adds a metamodel location to the configuration.
    *
-   * @param metamodelLocations The metamodel location to add.
-   * @return True if the metamodel location was added successfully, false
-   *         otherwise.
+   * @param metamodelLocation The metamodel location to add.
    */
-  public boolean addMetamodelLocations(MetamodelLocation metamodelLocations) {
-    return this.metamodelLocations.add(metamodelLocations);
-  }
-
-  private File workflow;
-
-  /**
-   * Returns the workflow of the configuration.
-   *
-   * @return The workflow of the configuration.
-   */
-  public File getWorkflow() {
-    return workflow;
+  public void addMetamodelLocations(MetamodelLocation metamodelLocation) {
+    this.metamodelLocations.add(metamodelLocation);
   }
 
   /**
-   * Sets the workflow of the configuration.
+   * Sets the metamodel locations using a semicolon-separated list of {@code ecore,genmodel} pairs.
    *
-   * @param workflow The workflow of the configuration.
-   */
-  public void setWorkflow(File workflow) {
-    this.workflow = workflow;
-  }
-
-  /**
-   * Sets the metamodel locations.
-   *
-   * @param paths The paths of the metamodels.
+   * @param paths The metamodel argument string.
    */
   public void setMetaModelLocations(String paths) {
     // Register the GenModel resource factory
@@ -104,29 +73,49 @@ public class VitruvConfiguration {
     for (String modelPaths : paths.split(";")) {
       String metamodelPath = modelPaths.split(",")[0];
       String genmodelPath = modelPaths.split(",")[1];
+
       File metamodel = new File(metamodelPath);
       File genmodel = new File(genmodelPath);
+
       String localModelDirectory = "";
 
       // getting the URI from the genmodels
       ResourceSet resourceSet = new ResourceSetImpl();
       URI uri = URI.createFileURI(metamodel.getAbsolutePath().trim());
       Resource resource = resourceSet.getResource(uri, true);
+
       if (!resource.getContents().isEmpty() && resource.getContents().get(0) instanceof EPackage ePackage) {
         // Load the GenModel to get the modelPluginID
         URI genmodelURI = URI.createFileURI(genmodel.getAbsolutePath());
         nsUri = genmodelURI.toString();
+
         Resource genmodelResource = resourceSet.getResource(genmodelURI, true);
         modelNames.add(ePackage.getName());
+
         if (!genmodelResource.getContents().isEmpty()
             && genmodelResource.getContents().get(0) instanceof GenModel genModel) {
+
           String packageString = removeLastSegment(genModel.getModelPluginID());
           logger.info("--------------------->>>>  " + packageString);
           this.setPackageName(packageString);
           localModelDirectory = genModel.getModelDirectory();
         }
       }
-      this.addMetamodelLocations(new MetamodelLocation(metamodel, genmodel, nsUri, localModelDirectory));
+
+      this.addMetamodelLocations(
+          new MetamodelLocation(metamodel, genmodel, nsUri, localModelDirectory));
+    }
+  }
+
+  /**
+   * Sets the reaction file locations used by the CLI.
+   *
+   * @param reactionLocations list of paths to reaction files.
+   */
+  public void setReactionLocations(List<Path> reactionLocations) {
+    this.reactionLocations.clear();
+    if (reactionLocations != null) {
+      this.reactionLocations.addAll(reactionLocations);
     }
   }
 
@@ -155,15 +144,6 @@ public class VitruvConfiguration {
   }
 
   /**
-   * Returns the package name.
-   *
-   * @return The package name.
-   */
-  public String getPackageName() {
-    return this.packageName;
-  }
-
-  /**
    * Sets the package name.
    *
    * @param packageName The package name.
@@ -171,5 +151,4 @@ public class VitruvConfiguration {
   public void setPackageName(String packageName) {
     this.packageName = packageName.replace("\\s", "");
   }
-
 }

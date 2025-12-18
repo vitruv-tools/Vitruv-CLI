@@ -14,12 +14,15 @@ public class ReactionOption extends VitruvCLIOption {
 
   public ReactionOption() {
     super("r", "reaction", true, "The path to the file the Reactions are stored in.");
-    this.setRequired(true);
+    this.setRequired(false);
   }
 
   @Override
   public VirtualModelBuilder applyInternal(
       CommandLine cmd, VirtualModelBuilder builder, VitruvConfiguration configuration) {
+    if (!cmd.hasOption(getOpt())) {
+      return builder;
+    }
     String reactionsPath = cmd.getOptionValue(getOpt());
     reactionsFile = FileUtils.copyFile(
         reactionsPath, getPath(cmd, builder), "/consistency/src/main/reactions/");
@@ -29,6 +32,9 @@ public class ReactionOption extends VitruvCLIOption {
   @Override
   public VirtualModelBuilder postBuild(
       CommandLine cmd, VirtualModelBuilder builder, VitruvConfiguration configuration) {
+    if (!cmd.hasOption(getOpt())) {
+      return builder;
+    }
     ChangePropagationSpecification loadedClass = null;
     try {
       String name = FileUtils.findOption(reactionsFile, "reactions:");
