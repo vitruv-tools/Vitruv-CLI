@@ -5,6 +5,7 @@ import java.nio.file.*;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.apache.commons.cli.CommandLine;
 import tools.vitruv.cli.configuration.VitruvConfiguration;
 import tools.vitruv.framework.vsum.VirtualModelBuilder;
@@ -80,7 +81,7 @@ public class ReactionsOption extends VitruvCLIOption {
               .filter(Files::isRegularFile)
               .filter(p -> p.getFileName().toString().endsWith(".reactions"))
               .sorted(Comparator.comparing(p -> p.getFileName().toString()))
-              .collect(Collectors.toList());
+              .toList();
     } catch (IOException e) {
       throw new IllegalStateException("Failed to read reactions directory: " + reactionsDir, e);
     }
