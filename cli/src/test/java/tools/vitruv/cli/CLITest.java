@@ -20,6 +20,21 @@ public class CLITest {
   }
 
   @Test
+  public void mainWithMultipleMetamodelsAndReactions() {
+    CLI.main(
+        new String[] {
+          "-m",
+          "src/test/resources/model/model.ecore,src/test/resources/model/model.genmodel;src/test/resources/model/model2.ecore,src/test/resources/model/model2.genmodel",
+          "-f",
+          "target/internal/",
+          "-u",
+          "default",
+          "-rs",
+          "src/test/resources/consistency"
+        });
+  }
+
+  @Test
   public void test1() {
     CLI.main(
         new String[] {
