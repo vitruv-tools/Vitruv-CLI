@@ -5,7 +5,7 @@ Options:
 - f (--folder): The path to the folder the Vitruv project should be instantiated in.
 - m (--metamodel): A semicolon separated list of pairs of paths to the metamodels and their genmodels that are used in the reactions, e.g., MyMetamodel.ecore,MyGenmodel.genmodel;MyMetamodel1.ecore,MyGenmodel1.genmodel.
 - r (--reation): The path to the file the Reactions are stored in.
-- rs (--reactions):The path to a directory containing multiple .reactions files. All reaction files in this directory will be used during the build. Mutually exclusive with -r/--reaction.
+- rs (--reactions): The path to a directory containing multiple .reactions files. All reaction files in this directory will be used during the build. Mutually exclusive with -r/--reaction.
 - u (--userinteractor): Specify the path to a specific user interactor, use the keyword 'default' to denote that you want to use a default user interactor without functionality.
 
 ## Framework-internal Dependencies
