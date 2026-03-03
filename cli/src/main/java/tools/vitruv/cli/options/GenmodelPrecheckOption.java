@@ -36,14 +36,14 @@ import tools.vitruv.framework.vsum.VirtualModelBuilder;
  */
 public class GenmodelPrecheckOption extends VitruvCLIOption {
 
-    private static final String OPT = "pg";
+    private static final String PRE_CHECK_GEN_MODEL_OPT = "pg";
 
     /**
      * Creates the {@code --precheck-genmodel} option.
      */
     public GenmodelPrecheckOption() {
         super(
-                OPT,
+                PRE_CHECK_GEN_MODEL_OPT,
                 "precheck-genmodel",
                 false,
                 "Precheck .genmodel files for MWE2 build compatibility (fails fast on issues).");
@@ -60,7 +60,7 @@ public class GenmodelPrecheckOption extends VitruvCLIOption {
      */
     @Override
     public void prepare(CommandLine cmd, VitruvConfiguration configuration) {
-        if (!cmd.hasOption(OPT)) return;
+        if (!cmd.hasOption(PRE_CHECK_GEN_MODEL_OPT)) return;
 
         List<MetamodelLocation> locations = configuration.getMetaModelLocations();
         if (locations == null || locations.isEmpty()) {
@@ -155,22 +155,22 @@ public class GenmodelPrecheckOption extends VitruvCLIOption {
      * @throws IOException if the file cannot be loaded or is not a valid genmodel
      */
     private GenModel loadGenModel(Path genmodelPath) throws IOException {
-        ResourceSet rs = new ResourceSetImpl();
-        rs.getPackageRegistry().put(GenModelPackage.eNS_URI, GenModelPackage.eINSTANCE);
+        ResourceSet resourceSet = new ResourceSetImpl();
+        resourceSet.getPackageRegistry().put(GenModelPackage.eNS_URI, GenModelPackage.eINSTANCE);
 
-        rs.getResourceFactoryRegistry().getExtensionToFactoryMap()
+        resourceSet.getResourceFactoryRegistry().getExtensionToFactoryMap()
                 .put("genmodel", new org.eclipse.emf.ecore.xmi.impl.XMIResourceFactoryImpl());
-        rs.getResourceFactoryRegistry().getExtensionToFactoryMap()
+        resourceSet.getResourceFactoryRegistry().getExtensionToFactoryMap()
                 .put("xmi", new org.eclipse.emf.ecore.xmi.impl.XMIResourceFactoryImpl());
-        rs.getResourceFactoryRegistry().getExtensionToFactoryMap()
+        resourceSet.getResourceFactoryRegistry().getExtensionToFactoryMap()
                 .put("*", new org.eclipse.emf.ecore.xmi.impl.XMIResourceFactoryImpl());
 
         try {
             URI uri = URI.createFileURI(genmodelPath.toAbsolutePath().toString());
-            Resource r = rs.getResource(uri, true);
-            r.load(null);
+            Resource resource = resourceSet.getResource(uri, true);
+            resource.load(null);
 
-            if (r.getContents().isEmpty() || !(r.getContents().get(0) instanceof GenModel gm)) {
+            if (resource.getContents().isEmpty() || !(resource.getContents().get(0) instanceof GenModel gm)) {
                 throw new IOException("File is not a valid EMF GenModel: " + genmodelPath);
             }
             return gm;
@@ -183,21 +183,21 @@ public class GenmodelPrecheckOption extends VitruvCLIOption {
      * Validates that every {@link GenPackage} has a {@code basePackage} equal to {@code modelPluginID}.
      *
      * @param genmodelFile the genmodel file being checked
-     * @param gm the loaded {@link GenModel}
+     * @param genModel the loaded {@link GenModel}
      * @param modelPluginId the required model plugin id
      * @param errors error accumulator
      */
     private void validateBasePackageEqualsModelPluginId(
-            File genmodelFile, GenModel gm, String modelPluginId, List<String> errors) {
-        List<GenPackage> genPackages = gm.getGenPackages();
+            File genmodelFile, GenModel genModel, String modelPluginId, List<String> errors) {
+        List<GenPackage> genPackages = genModel.getGenPackages();
         if (genPackages == null || genPackages.isEmpty()) {
             errors.add(genmodelFile.getName() + ": no genPackages found in genmodel.");
             return;
         }
 
-        for (GenPackage gp : genPackages) {
-            String basePackage = safeTrim(gp.getBasePackage());
-            String gpName = safeTrim(gp.getPackageName());
+        for (GenPackage genPackage : genPackages) {
+            String basePackage = safeTrim(genPackage.getBasePackage());
+            String gpName = safeTrim(genPackage.getPackageName());
             String gpLabel = gpName.isEmpty() ? "<unnamed GenPackage>" : gpName;
 
             if (basePackage.isEmpty()) {
@@ -226,14 +226,14 @@ public class GenmodelPrecheckOption extends VitruvCLIOption {
      * Validates that {@code modelDirectory} equals {@code /<modelPluginID>/target/generated-sources/ecore}.
      *
      * @param genmodelFile the genmodel file being checked
-     * @param gm the loaded {@link GenModel}
+     * @param genModel the loaded {@link GenModel}
      * @param modelPluginId the required model plugin id
      * @param errors error accumulator
      */
     private void validateModelDirectory(
-            File genmodelFile, GenModel gm, String modelPluginId, List<String> errors) {
+            File genmodelFile, GenModel genModel, String modelPluginId, List<String> errors) {
         String expectedModelDirectory = normalizeDir("/" + modelPluginId + "/target/generated-sources/ecore");
-        String modelDirectory = normalizeDir(safeTrim(gm.getModelDirectory()));
+        String modelDirectory = normalizeDir(safeTrim(genModel.getModelDirectory()));
 
         if (modelDirectory.isEmpty()) {
             errors.add(
@@ -247,7 +247,7 @@ public class GenmodelPrecheckOption extends VitruvCLIOption {
                             + ": modelDirectory must be '"
                             + expectedModelDirectory
                             + "'. Found '"
-                            + safeTrim(gm.getModelDirectory())
+                            + safeTrim(genModel.getModelDirectory())
                             + "'.");
         }
     }
@@ -256,7 +256,6 @@ public class GenmodelPrecheckOption extends VitruvCLIOption {
      * Validates that {@code complianceLevel} is not set on the genmodel, if the EMF version exposes it.
      *
      * @param genmodelFile the genmodel file being checked
-     * @param gm the loaded {@link GenModel}
      * @param errors error accumulator
      */
     private void validateComplianceRemoved(File genmodelFile, List<String> errors) {

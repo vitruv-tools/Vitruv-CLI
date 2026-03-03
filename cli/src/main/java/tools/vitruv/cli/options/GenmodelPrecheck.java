@@ -113,14 +113,14 @@ public final class GenmodelPrecheck {
 
         try {
             URI uri = URI.createFileURI(genmodelFile.getAbsolutePath());
-            Resource r = rs.getResource(uri, true);
-            r.load(null);
+            Resource resource = rs.getResource(uri, true);
+            resource.load(null);
 
-            Object root = r.getContents().isEmpty() ? null : r.getContents().get(0);
-            if (!(root instanceof GenModel gm)) {
+            Object root = resource.getContents().isEmpty() ? null : resource.getContents().get(0);
+            if (!(root instanceof GenModel genModel)) {
                 throw new IOException("Not a GenModel: " + genmodelFile.getAbsolutePath());
             }
-            return gm;
+            return genModel;
         } catch (RuntimeException e) {
             throw new IOException("Failed to load genmodel: " + genmodelFile.getAbsolutePath(), e);
         }
@@ -173,9 +173,9 @@ public final class GenmodelPrecheck {
             return;
         }
 
-        for (GenPackage gp : genPackages) {
-            String basePackage = safeTrim(gp.getBasePackage());
-            String gpName = safeTrim(gp.getPackageName());
+        for (GenPackage genPackage : genPackages) {
+            String basePackage = safeTrim(genPackage.getBasePackage());
+            String gpName = safeTrim(genPackage.getPackageName());
             String label = gpName.isEmpty() ? "<unnamed GenPackage>" : gpName;
 
             if (basePackage.isEmpty()) {
@@ -227,12 +227,12 @@ public final class GenmodelPrecheck {
             return;
         }
 
-        for (GenPackage gp : genPackages) {
-            EPackage ep = gp.getEcorePackage();
-            String gpName = safeTrim(gp.getPackageName());
+        for (GenPackage genPackage : genPackages) {
+            EPackage ecorePackage = genPackage.getEcorePackage();
+            String gpName = safeTrim(genPackage.getPackageName());
             String label = gpName.isEmpty() ? "<unnamed GenPackage>" : gpName;
 
-            if (ep == null) {
+            if (ecorePackage == null) {
                 issues.add(new Issue(genmodelFile,
                         "GenPackage " + label + " has no resolved ecorePackage (check ecorePackage=\"...\" and foreignModel)."));
             }
