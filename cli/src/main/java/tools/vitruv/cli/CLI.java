@@ -28,17 +28,14 @@ import tools.vitruv.cli.options.VitruvCLIOption;
 import tools.vitruv.framework.vsum.VirtualModelBuilder;
 
 /**
- * The CLI class is the main entry point for the command line interface of the
- * Vitruv framework. It
- * parses the command line arguments and triggers the generation of the
- * necessary files and the
+ * The CLI class is the main entry point for the command line interface of the Vitruv framework. It
+ * parses the command line arguments and triggers the generation of the necessary files and the
  * build of the project.
  */
 public class CLI {
 
   /**
-   * The main method of the CLI class. It parses the command line arguments and
-   * triggers the
+   * The main method of the CLI class. It parses the command line arguments and triggers the
    * generation of the necessary files and the build of the project.
    *
    * @param args The command line arguments.
@@ -48,8 +45,7 @@ public class CLI {
   }
 
   /**
-   * Parses the command line arguments and triggers the generation of the
-   * necessary files and the
+   * Parses the command line arguments and triggers the generation of the necessary files and the
    * build of the project.
    *
    * @param args The command line arguments.
@@ -80,7 +76,7 @@ public class CLI {
 
       if (line.hasOption("r") && line.hasOption("rs")) {
         throw new ParseException(
-                "Options -r/--reaction and -rs/--reactions-source are mutually exclusive.");
+            "Options -r/--reaction and -rs/--reactions-source are mutually exclusive.");
       }
 
       VirtualModelBuilder builder = new VirtualModelBuilder();
@@ -225,7 +221,8 @@ public class CLI {
 
     generateFromTemplate.generateVsumExample(
         new File((configuration.getLocalPath() + "/vsum/src/main/java/VSUMExample.java").trim()),
-        configuration.getPackageName(), configuration.getModelNames());
+        configuration.getPackageName(),
+        configuration.getModelNames());
     System.out.println("Generating vsum example java class");
 
     generateFromTemplate.generateVsumTest(
@@ -238,7 +235,8 @@ public class CLI {
         new File((configuration.getLocalPath() + "/model/.project").trim()),
         configuration.getPackageName());
     System.out.println("Generating project file");
-    File workflow = new File((configuration.getLocalPath() + "/model/workflow/generate.mwe2").trim());
+    File workflow =
+        new File((configuration.getLocalPath() + "/model/workflow/generate.mwe2").trim());
     configuration.setWorkflow(workflow);
 
     generateFromTemplate.generateMwe2(
