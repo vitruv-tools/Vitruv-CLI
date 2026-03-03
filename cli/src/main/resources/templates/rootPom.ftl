@@ -31,7 +31,7 @@
   </modules>
 
   <properties>
-    <vitruv.version>3.1.2</vitruv.version>
+    <vitruv.version>3.2.3</vitruv.version>
   </properties>
 
   <dependencyManagement>

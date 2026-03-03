@@ -4,17 +4,20 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
+
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
+
 import tools.vitruv.cli.configuration.VitruvConfiguration;
 import tools.vitruv.cli.exceptions.MissingModelException;
 import tools.vitruv.cli.options.FolderOption;
 import tools.vitruv.cli.options.MetamodelOption;
 import tools.vitruv.cli.options.ReactionOption;
+import tools.vitruv.cli.options.ReactionsOption;
 import tools.vitruv.cli.options.UserInteractorOption;
 import tools.vitruv.cli.options.VitruvCLIOption;
 import tools.vitruv.framework.vsum.VirtualModelBuilder;
@@ -50,11 +53,18 @@ public class CLI {
     options.addOption(new FolderOption());
     options.addOption(new UserInteractorOption());
     options.addOption(new ReactionOption());
+    options.addOption(new ReactionsOption());
     CommandLineParser parser = new DefaultParser();
     VitruvConfiguration configuration = new VitruvConfiguration();
 
     try {
       CommandLine line = parser.parse(options, args);
+
+      if (line.hasOption("r") && line.hasOption("rs")) {
+        throw new ParseException(
+            "Options -r/--reaction and -rs/--reactions-source are mutually exclusive.");
+      }
+
       VirtualModelBuilder builder = new VirtualModelBuilder();
       for (Option option : line.getOptions()) {
         log.info("Preparing option {} with value {}", option.getLongOpt(), option.getValuesList());
@@ -150,7 +160,8 @@ public class CLI {
 
     generateFromTemplate.generateVsumExample(
         new File((configuration.getLocalPath() + "/vsum/src/main/java/VSUMExample.java").trim()),
-        configuration.getPackageName());
+        configuration.getPackageName(),
+        configuration.getModelNames());
     log.info("Generating vsum example java class");
 
     generateFromTemplate.generateVsumTest(

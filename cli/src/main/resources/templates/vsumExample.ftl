@@ -2,6 +2,9 @@ package ${packageName}.vsum;
 
 import tools.vitruv.framework.vsum.VirtualModelBuilder;
 import ${packageName}.model.model.ModelFactory;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 import java.nio.file.Path;
 import java.util.function.Consumer;
@@ -10,6 +13,7 @@ import tools.vitruv.change.testutils.TestUserInteraction;
 import tools.vitruv.framework.views.CommittableView;
 import tools.vitruv.framework.views.View;
 import tools.vitruv.framework.views.ViewTypeFactory;
+import tools.vitruv.framework.views.ViewType;
 import tools.vitruv.framework.vsum.VirtualModel;
 import tools.vitruv.framework.remote.server.*;
 import java.util.Scanner;
@@ -35,10 +39,11 @@ public class VSUMExample {
   }
 
   private static VirtualModel createDefaultVirtualModel() {
+    Collection<ViewType<?>> viewTypes = createDefaultViewTypes();
     VirtualModel model = new VirtualModelBuilder()
         .withStorageFolder(Path.of("vsumexample"))
         .withUserInteractorForResultProvider(new TestUserInteraction.ResultProvider(new TestUserInteraction()))
-        .withChangePropagationSpecifications(new Model2Model2ChangePropagationSpecification())
+        .withChangePropagationSpecifications(new Model2Model2ChangePropagationSpecification()).withViewTypes(viewTypes)
         .buildAndInitialize();
       getDefaultView(model);
       return model;
@@ -53,6 +58,14 @@ public class VSUMExample {
   private static void modifyView(CommittableView view, Consumer<CommittableView> modificationFunction) {
     modificationFunction.accept(view);
     view.commitChanges();
+  }
+  
+  private static Collection<ViewType<?>> createDefaultViewTypes() {
+    List<ViewType<?>> viewTypes = new ArrayList<>();
+    <#list models as model>
+        <#include "viewTypes.ftl">
+    </#list>
+    return viewTypes;
   }
 
 }
