@@ -9,15 +9,15 @@ import tools.vitruv.cli.configuration.VitruvConfiguration;
 import tools.vitruv.framework.vsum.VirtualModelBuilder;
 
 /**
- * CLI option wrapper around {@link GenmodelPrecheck}.
- *
- * <p>- Collects configured genmodel files from VitruvConfiguration - Runs
- * GenmodelPrecheck.process(file) on each - Fails if any ERRORs occur or if IO happens
+ * CLI option to validate and standardize .genmodel files for MWE2 compatibility.
  */
 public class GenmodelPrecheckOption extends VitruvCLIOption {
 
   private static final String OPT = "pg";
 
+  /**
+   * Constructs the genmodel precheck option.
+   */
   public GenmodelPrecheckOption() {
     super(
         OPT,
@@ -28,6 +28,12 @@ public class GenmodelPrecheckOption extends VitruvCLIOption {
     this.setOptionalArg(true);
   }
 
+  /**
+   * Validates and processes all configured genmodel files.
+   *
+   * @param cmd the command line
+   * @param configuration the Vitruv configuration
+   */
   @Override
   public void prepare(CommandLine cmd, VitruvConfiguration configuration) {
     if (!cmd.hasOption(OPT)) return;

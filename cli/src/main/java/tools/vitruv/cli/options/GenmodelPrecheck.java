@@ -6,12 +6,9 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.regex.Pattern;
 import javax.xml.stream.*;
 import javax.xml.stream.events.*;
 import java.io.*;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.*;
 import java.util.*;
 import org.eclipse.emf.codegen.ecore.genmodel.GenModel;
 import org.eclipse.emf.codegen.ecore.genmodel.GenModelPackage;
@@ -23,26 +20,13 @@ import org.eclipse.emf.ecore.resource.impl.ResourceSetImpl;
 import org.eclipse.emf.ecore.xmi.impl.XMIResourceFactoryImpl;
 
 /**
- * Validates GenModel files for compatibility with MWE2 generator workflows.
- *
- * <p>This checker ensures that GenModel files meet specific requirements:
- *
- * <ul>
- *   <li>The {@code complianceLevel} attribute must be removed
- *   <li>The {@code basePackage} must equal {@code modelPluginID}
- *   <li>The {@code modelDirectory} must follow the pattern {@code
- *       /<modelPluginID>/target/generated-sources/ecore}
- *   <li>All {@code foreignModel} entries must reference existing files
- *   <li>All GenPackages must have resolved {@code ecorePackage} references
- * </ul>
+ * Validates GenModel files for MWE2 workflow compatibility.
  */
 public final class GenmodelPrecheck {
 
-  /**
-   * Represents a validation issue found in a GenModel file.
-   *
-   * <p>Issues can be errors or warnings. Warnings are prefixed with "WARNING:" in the message.
-   */
+/**
+ * Represents a validation issue found in a GenModel file.
+ */
   public static final class Issue {
     public final File file;
     public final String message;
@@ -58,6 +42,12 @@ public final class GenmodelPrecheck {
     }
   }
 
+  /**
+   * Validates and corrects a GenModel file for MWE2 compatibility.
+   *
+   * @param genmodelFile the GenModel file to process
+   * @return a list of issues found and corrected
+   */
   public List<Issue> process(File genmodelFile) {
     if (genmodelFile == null) {
       throw new IllegalArgumentException("genmodelFile must not be null");
@@ -154,6 +144,13 @@ public final class GenmodelPrecheck {
     return issues;
   }
 
+  /**
+   * Removes specified XML attributes from the given XML string using StAX parser.
+   *
+   * @param xml the XML content
+   * @param attributeLocalNamesToRemove set of attribute names to remove
+   * @return XML string with specified attributes removed
+   */
   public String stripAttributesWithStax(String xml, Set<String> attributeLocalNamesToRemove) {
     try {
       XMLInputFactory inFactory = XMLInputFactory.newFactory();
@@ -202,6 +199,13 @@ public final class GenmodelPrecheck {
     }
   }
 
+  /**
+   * Ensures creationIcons is set to false in the GenModel.
+   *
+   * @param genmodelFile the GenModel file
+   * @param genModel the GenModel to modify
+   * @param issues the issue list to collect changes
+   */
   public void enforceCreationIcons(File genmodelFile, GenModel genModel, List<Issue> issues) {
     if (genModel.isCreationIcons()) {
       genModel.setCreationIcons(false);
@@ -209,6 +213,13 @@ public final class GenmodelPrecheck {
     }
   }
 
+  /**
+   * Ensures foreignModel entry exists, adding default if missing.
+   *
+   * @param genmodelFile the GenModel file
+   * @param genModel the GenModel to modify
+   * @param issues the issue list to collect changes
+   */
   public void enforceForeignModel(File genmodelFile, GenModel genModel, List<Issue> issues) {
     List<String> foreignModels = genModel.getForeignModel();
 
@@ -220,6 +231,14 @@ public final class GenmodelPrecheck {
     }
   }
 
+  /**
+   * Ensures basePackage equals modelPluginId for all GenPackages.
+   *
+   * @param genmodelFile the GenModel file
+   * @param genModel the GenModel to modify
+   * @param modelPluginId the expected plugin ID
+   * @param issues the issue list to collect changes
+   */
   public void enforceBasePackageEqualsModelPluginId(
       File genmodelFile, GenModel genModel, String modelPluginId, List<Issue> issues) {
 
@@ -253,13 +272,12 @@ public final class GenmodelPrecheck {
   }
 
   /**
-   * Ensures {@code GenModel#modelDirectory} matches the CLI/MWE2 template convention:
+   * Ensures modelDirectory follows the required pattern.
    *
-   * @param genmodelFile  source file for reporting purposes (used in {@link Issue})
-   * @param genModel      loaded EMF GenModel to mutate
-   * @param modelPluginId plugin id used to compute the expected directory
-   * @param issues        output list that receives informational issues when changes are applied
-   * @throws IllegalArgumentException if {@code genModel} or {@code modelPluginId} is null
+   * @param genmodelFile the GenModel file
+   * @param genModel the GenModel to modify
+   * @param modelPluginId the plugin ID for computing the expected directory
+   * @param issues the issue list to collect changes
    */
   public void enforceModelDirectory(
       File genmodelFile, GenModel genModel, String modelPluginId, List<Issue> issues) {
@@ -282,12 +300,22 @@ public final class GenmodelPrecheck {
     }
   }
 
-  /** Safely trims a string, treating null as empty string. */
+  /**
+   * Safely trims a string, treating null as empty string.
+   *
+   * @param s the string to trim
+   * @return the trimmed string or empty string if null
+   */
   public String safeTrim(String s) {
     return s == null ? "" : s.trim();
   }
 
-  /** Normalizes path separators and collapses multiple slashes. */
+  /**
+   * Normalizes path separators and collapses multiple slashes.
+   *
+   * @param s the path string
+   * @return the normalized path
+   */
   public String normalize(String s) {
     return s.replace("\\", "/").replaceAll("/+", "/").trim();
   }
