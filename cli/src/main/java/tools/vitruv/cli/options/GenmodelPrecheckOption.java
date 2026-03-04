@@ -25,7 +25,6 @@ public class GenmodelPrecheckOption extends VitruvCLIOption {
         false,
         "Precheck and standardize .genmodel files for MWE2 template compatibility.");
     this.setArgs(0);
-    this.setOptionalArg(true);
   }
 
   /**

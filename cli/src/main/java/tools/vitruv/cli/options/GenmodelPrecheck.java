@@ -2,14 +2,24 @@ package tools.vitruv.cli.options;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.StringReader;
+import java.io.StringWriter;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
-import javax.xml.stream.*;
-import javax.xml.stream.events.*;
-import java.io.*;
-import java.util.*;
+import javax.xml.stream.XMLEventFactory;
+import javax.xml.stream.XMLEventReader;
+import javax.xml.stream.XMLEventWriter;
+import javax.xml.stream.XMLInputFactory;
+import javax.xml.stream.XMLOutputFactory;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.events.Attribute;
+import javax.xml.stream.events.Namespace;
+import javax.xml.stream.events.StartElement;
+import javax.xml.stream.events.XMLEvent;
+import java.util.Set;
 import org.eclipse.emf.codegen.ecore.genmodel.GenModel;
 import org.eclipse.emf.codegen.ecore.genmodel.GenModelPackage;
 import org.eclipse.emf.codegen.ecore.genmodel.GenPackage;
@@ -19,14 +29,10 @@ import org.eclipse.emf.ecore.resource.ResourceSet;
 import org.eclipse.emf.ecore.resource.impl.ResourceSetImpl;
 import org.eclipse.emf.ecore.xmi.impl.XMIResourceFactoryImpl;
 
-/**
- * Validates GenModel files for MWE2 workflow compatibility.
- */
+/** Validates GenModel files for MWE2 workflow compatibility. */
 public final class GenmodelPrecheck {
 
-/**
- * Represents a validation issue found in a GenModel file.
- */
+  /** Represents a validation issue found in a GenModel file. */
   public static final class Issue {
     public final File file;
     public final String message;
@@ -156,16 +162,14 @@ public final class GenmodelPrecheck {
       XMLInputFactory inFactory = XMLInputFactory.newFactory();
       inFactory.setProperty(XMLInputFactory.SUPPORT_DTD, false);
       inFactory.setProperty("javax.xml.stream.isSupportingExternalEntities", false);
-      inFactory.setXMLResolver((publicID, systemID, baseURI, namespace) -> {
-        throw new XMLStreamException("External entity resolution disabled");
-      });
+      inFactory.setXMLResolver(
+          (publicID, systemID, baseURI, namespace) -> {
+            throw new XMLStreamException("External entity resolution disabled");
+          });
       inFactory.setProperty(XMLInputFactory.IS_NAMESPACE_AWARE, true);
 
       XMLOutputFactory outFactory = XMLOutputFactory.newFactory();
       XMLEventFactory eventFactory = XMLEventFactory.newFactory();
-
-
-
       inFactory.setProperty(XMLInputFactory.IS_NAMESPACE_AWARE, true);
       XMLEventReader reader = inFactory.createXMLEventReader(new StringReader(xml));
       StringWriter stringWriter = new StringWriter();
@@ -297,9 +301,7 @@ public final class GenmodelPrecheck {
     if (before.isEmpty()) {
       genModel.setModelDirectory(expected);
       issues.add(new Issue(genmodelFile, "Set modelDirectory to '" + expected + "'."));
-    }
-
-    if (!before.equals(expected)) {
+    } else if (!before.equals(expected)) {
       genModel.setModelDirectory(expected);
       issues.add(
           new Issue(

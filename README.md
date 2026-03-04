@@ -28,7 +28,7 @@ The following adjustments may be applied automatically:
 - Ensure required conventions:
     - `basePackage` equals `modelPluginID`
     - `modelDirectory` equals  
-      `/\<modelPluginID>/target/generated-sources/ecore`
+      `/<modelPluginID>/target/generated-sources/ecore`
     - `creationIcons` is set to `false`
     - `foreignModel` exists (defaults to `<genmodel-name>.ecore` if missing)
 
@@ -36,7 +36,7 @@ The following adjustments may be applied automatically:
 
 **1. Standalone validation**
 
-You can run to precheck to normalize `.genmodel` files before building.
+You can run the precheck to normalize `.genmodel` files before building.
 
 vitruv-cli -pg -m MyMetamodel.ecore,MyGenmodel.genmodel
 
