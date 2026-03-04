@@ -86,7 +86,6 @@ public class CLI {
         ((VitruvCLIOption) option).prepare(line, configuration);
       }
 
-      runGenmodelPrecheck(configuration);
       if (line.hasOption("pg")) {
         return;
       }
@@ -140,37 +139,6 @@ public class CLI {
     } catch (MissingModelException e) {
       System.out.println("Generating files failed (missing models).  Reason: " + e.getMessage());
     }
-  }
-
-  private void runGenmodelPrecheck(VitruvConfiguration configuration) {
-    GenmodelPrecheck precheck = new GenmodelPrecheck();
-    List<GenmodelPrecheck.Issue> issues = new ArrayList<>();
-    List<MetamodelLocation> locations = configuration.getMetaModelLocations();
-    if (locations == null || locations.isEmpty()) {
-      throw new IllegalArgumentException(
-              "No metamodels configured. Provide -m/--metamodel before running --precheck-genmodel.");
-    }
-    for (MetamodelLocation loc : locations) {
-      File genmodelFile = loc.genmodel();
-      try {
-        issues.addAll(precheck.check(genmodelFile));
-      } catch (IOException e) {
-        issues.add(new GenmodelPrecheck.Issue(genmodelFile, e.getMessage()));
-      }
-    }
-    if (!issues.isEmpty()) {
-      throw new IllegalArgumentException(formatIssues(issues));
-    }else {
-      System.out.println("Genmodel precheck passed.");
-    }
-  }
-
-  private String formatIssues(List<GenmodelPrecheck.Issue> issues) {
-    StringBuilder sb = new StringBuilder("Genmodel precheck failed:");
-    for (GenmodelPrecheck.Issue issue : issues) {
-      sb.append("\n- ").append(issue);
-    }
-    return sb.toString();
   }
 
   private void generateFiles(VitruvConfiguration configuration)
