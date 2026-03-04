@@ -154,11 +154,19 @@ public final class GenmodelPrecheck {
   public String stripAttributesWithStax(String xml, Set<String> attributeLocalNamesToRemove) {
     try {
       XMLInputFactory inFactory = XMLInputFactory.newFactory();
+      inFactory.setProperty(XMLInputFactory.SUPPORT_DTD, false);
+      inFactory.setProperty("javax.xml.stream.isSupportingExternalEntities", false);
+      inFactory.setXMLResolver((publicID, systemID, baseURI, namespace) -> {
+        throw new XMLStreamException("External entity resolution disabled");
+      });
       inFactory.setProperty(XMLInputFactory.IS_NAMESPACE_AWARE, true);
 
       XMLOutputFactory outFactory = XMLOutputFactory.newFactory();
       XMLEventFactory eventFactory = XMLEventFactory.newFactory();
 
+
+
+      inFactory.setProperty(XMLInputFactory.IS_NAMESPACE_AWARE, true);
       XMLEventReader reader = inFactory.createXMLEventReader(new StringReader(xml));
       StringWriter stringWriter = new StringWriter();
       XMLEventWriter writer = outFactory.createXMLEventWriter(stringWriter);
