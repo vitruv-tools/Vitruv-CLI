@@ -230,8 +230,7 @@ class GenmodelPrecheckTest {
   }
 
   @Test
-  void enforceModelDirectory_whenBlank_setsExpected_andAddsTwoIssues_currentBehavior() {
-    // Your method currently has two independent if statements, so blank triggers both.
+  void enforceModelDirectory_whenBlank_setsExpected_andAddsOneIssue() {
     GenmodelPrecheck svc = new GenmodelPrecheck();
 
     GenModel gm = GenModelFactory.eINSTANCE.createGenModel();
@@ -241,9 +240,8 @@ class GenmodelPrecheckTest {
     svc.enforceModelDirectory(new File("x.genmodel"), gm, "p", issues);
 
     assertEquals("/p/target/generated-sources/ecore", svc.normalize(gm.getModelDirectory()));
-    assertEquals(2, issues.size(), "Blank currently produces 2 issues due to double-if.");
+    assertEquals(1, issues.size(), "Blank should produce exactly 1 issue (Set...).");
     assertTrue(issues.get(0).message.contains("Set modelDirectory"));
-    assertTrue(issues.get(1).message.contains("Changed modelDirectory"));
   }
 
   @Test
