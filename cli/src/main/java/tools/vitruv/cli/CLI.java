@@ -4,8 +4,6 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.ArrayList;
-import java.util.List;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -14,11 +12,9 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 
-import tools.vitruv.cli.configuration.MetamodelLocation;
 import tools.vitruv.cli.configuration.VitruvConfiguration;
 import tools.vitruv.cli.exceptions.MissingModelException;
 import tools.vitruv.cli.options.FolderOption;
-import tools.vitruv.cli.options.GenmodelPrecheck;
 import tools.vitruv.cli.options.GenmodelPrecheckOption;
 import tools.vitruv.cli.options.MetamodelOption;
 import tools.vitruv.cli.options.ReactionOption;
