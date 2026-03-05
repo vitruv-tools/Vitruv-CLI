@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.Arrays;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -15,6 +16,7 @@ import org.apache.commons.cli.ParseException;
 import tools.vitruv.cli.configuration.VitruvConfiguration;
 import tools.vitruv.cli.exceptions.MissingModelException;
 import tools.vitruv.cli.options.FolderOption;
+import tools.vitruv.cli.options.GenmodelPrecheckOption;
 import tools.vitruv.cli.options.MetamodelOption;
 import tools.vitruv.cli.options.ReactionOption;
 import tools.vitruv.cli.options.ReactionsOption;
@@ -46,16 +48,34 @@ public class CLI {
    * @param args The command line arguments.
    */
   public void parseCLI(String[] args) {
-    Options options = new Options();
-    options.addOption(new MetamodelOption());
-    options.addOption(new FolderOption());
-    options.addOption(new UserInteractorOption());
-    options.addOption(new ReactionOption());
-    options.addOption(new ReactionsOption());
     CommandLineParser parser = new DefaultParser();
     VitruvConfiguration configuration = new VitruvConfiguration();
 
+    boolean precheckRequested = hasArg(args, "-pg") || hasArg(args, "--precheck-genmodel");
+
     try {
+      MetamodelOption metamodelOpt = new MetamodelOption();
+      FolderOption folderOpt = new FolderOption();
+      UserInteractorOption userOpt = new UserInteractorOption();
+      ReactionOption reactionOpt = new ReactionOption();
+      ReactionsOption reactionsOpt = new ReactionsOption();
+      GenmodelPrecheckOption precheckOpt = new GenmodelPrecheckOption();
+
+      if (precheckRequested) {
+        folderOpt.setRequired(false);
+        userOpt.setRequired(false);
+        reactionOpt.setRequired(false);
+        reactionsOpt.setRequired(false);
+      }
+
+      Options options = new Options();
+      options.addOption(metamodelOpt);
+      options.addOption(folderOpt);
+      options.addOption(userOpt);
+      options.addOption(reactionOpt);
+      options.addOption(reactionsOpt);
+      options.addOption(precheckOpt);
+
       CommandLine line = parser.parse(options, args);
 
       if (line.hasOption("r") && line.hasOption("rs")) {
@@ -64,12 +84,60 @@ public class CLI {
       }
 
       VirtualModelBuilder builder = new VirtualModelBuilder();
-      for (Option option : line.getOptions()) {
+
+      if (line.hasOption("m")) {
         System.out.println(
-            "Preparing option " + option.getLongOpt() + " with value " + option.getValuesList());
-        ((VitruvCLIOption) option).prepare(line, configuration);
+            "Preparing option "
+                + metamodelOpt.getLongOpt()
+                + " with value "
+                + Arrays.toString(line.getOptionValues("m")));
+        metamodelOpt.prepare(line, configuration);
       }
+
+      if (line.hasOption("pg")) {
+        System.out.println("Preparing option " + precheckOpt.getLongOpt() + " with value []");
+        precheckOpt.prepare(line, configuration);
+
+        if (!line.hasOption("f")) {
+          return;
+        }
+      }
+
+      if (line.hasOption("f")) {
+        System.out.println(
+            "Preparing option "
+                + folderOpt.getLongOpt()
+                + " with value "
+                + Arrays.toString(line.getOptionValues("f")));
+        folderOpt.prepare(line, configuration);
+      }
+      if (line.hasOption("u")) {
+        System.out.println(
+            "Preparing option "
+                + userOpt.getLongOpt()
+                + " with value "
+                + Arrays.toString(line.getOptionValues("u")));
+        userOpt.prepare(line, configuration);
+      }
+      if (line.hasOption("r")) {
+        System.out.println(
+            "Preparing option "
+                + reactionOpt.getLongOpt()
+                + " with value "
+                + Arrays.toString(line.getOptionValues("r")));
+        reactionOpt.prepare(line, configuration);
+      }
+      if (line.hasOption("rs")) {
+        System.out.println(
+            "Preparing option "
+                + reactionsOpt.getLongOpt()
+                + " with value "
+                + Arrays.toString(line.getOptionValues("rs")));
+        reactionsOpt.prepare(line, configuration);
+      }
+
       generateFiles(configuration);
+
       for (Option option : line.getOptions()) {
         System.out.println(
             "Preprocessing option "
@@ -78,6 +146,7 @@ public class CLI {
                 + option.getValuesList());
         ((VitruvCLIOption) option).preBuild(line, builder, configuration);
       }
+
       ProcessBuilder pbuilder;
       String command = "mvn clean verify";
       if (System.getProperty("os.name").toLowerCase().contains("win")) {
@@ -100,6 +169,7 @@ public class CLI {
             "Error occurred during maven build! Please fix your setup accordingly! Exit code: "
                 + process.exitValue());
       }
+
       for (Option option : line.getOptions()) {
         System.out.println(
             "Postprocessing option "
@@ -111,11 +181,20 @@ public class CLI {
       System.out.println(builder.buildAndInitialize());
     } catch (ParseException exp) {
       System.out.println("Parsing failed.  Reason: " + exp.getMessage());
+    } catch (IllegalArgumentException exp) {
+      System.out.println("Invalid CLI argument or option.  Reason: " + exp.getMessage());
     } catch (IOException | InterruptedException e) {
       System.out.println("Invoking maven to build the project failed.  Reason: " + e.getMessage());
     } catch (MissingModelException e) {
       System.out.println("Generating files failed (missing models).  Reason: " + e.getMessage());
     }
+  }
+
+  private static boolean hasArg(String[] args, String needle) {
+    for (String a : args) {
+      if (needle.equals(a)) return true;
+    }
+    return false;
   }
 
   private void generateFiles(VitruvConfiguration configuration)
