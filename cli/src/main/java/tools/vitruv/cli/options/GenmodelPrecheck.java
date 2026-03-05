@@ -64,26 +64,26 @@ public final class GenmodelPrecheck {
       originalXml = Files.readString(genmodelFile.toPath(), StandardCharsets.UTF_8);
     } catch (IOException e) {
       throw new IllegalArgumentException(
-              "Could not read genmodel file: " + genmodelFile.getAbsolutePath(), e);
+          "Could not read genmodel file: " + genmodelFile.getAbsolutePath(), e);
     }
 
     Set<String> attrsToRemove =
-            Set.of(
-                    "complianceLevel",
-                    "compliance",
-                    "editDirectory",
-                    "editorDirectory",
-                    "testsDirectory",
-                    "editPluginID",
-                    "editorPluginID",
-                    "testsPluginID");
+        Set.of(
+            "complianceLevel",
+            "compliance",
+            "editDirectory",
+            "editorDirectory",
+            "testsDirectory",
+            "editPluginID",
+            "editorPluginID",
+            "testsPluginID");
 
     final String strippedXml;
     try {
       strippedXml = stripAttributesWithStax(originalXml, attrsToRemove);
     } catch (Exception e) {
       throw new IllegalArgumentException(
-              "Could not strip attributes from genmodel XML: " + genmodelFile.getAbsolutePath(), e);
+          "Could not strip attributes from genmodel XML: " + genmodelFile.getAbsolutePath(), e);
     }
 
     List<Issue> issues = new ArrayList<>();
@@ -91,10 +91,11 @@ public final class GenmodelPrecheck {
     if (!originalXml.equals(strippedXml)) {
       try {
         Files.writeString(genmodelFile.toPath(), strippedXml, StandardCharsets.UTF_8);
-        issues.add(new Issue(genmodelFile, "Removed attributes: " + String.join(", ", attrsToRemove)));
+        issues.add(
+            new Issue(genmodelFile, "Removed attributes: " + String.join(", ", attrsToRemove)));
       } catch (IOException e) {
         throw new IllegalArgumentException(
-                "Could not write genmodel file: " + genmodelFile.getAbsolutePath(), e);
+            "Could not write genmodel file: " + genmodelFile.getAbsolutePath(), e);
       }
     }
 
@@ -102,9 +103,9 @@ public final class GenmodelPrecheck {
     ResourceSet resourceSet = new ResourceSetImpl();
     resourceSet.getPackageRegistry().put(GenModelPackage.eNS_URI, GenModelPackage.eINSTANCE);
     resourceSet
-            .getResourceFactoryRegistry()
-            .getExtensionToFactoryMap()
-            .put("genmodel", new XMIResourceFactoryImpl());
+        .getResourceFactoryRegistry()
+        .getExtensionToFactoryMap()
+        .put("genmodel", new XMIResourceFactoryImpl());
 
     URI uri = URI.createFileURI(genmodelFile.getAbsolutePath());
     Resource resource = resourceSet.getResource(uri, true);
@@ -112,7 +113,7 @@ public final class GenmodelPrecheck {
       resource.load(null);
     } catch (IOException e) {
       throw new IllegalArgumentException(
-              "Could not load genmodel file: " + genmodelFile.getAbsolutePath(), e);
+          "Could not load genmodel file: " + genmodelFile.getAbsolutePath(), e);
     }
 
     if (resource.getContents().isEmpty() || !(resource.getContents().get(0) instanceof GenModel)) {
@@ -123,8 +124,8 @@ public final class GenmodelPrecheck {
 
     String modelPluginId = safeTrim(genModel.getModelPluginID());
     if (modelPluginId.isEmpty()) {
-      issues.add(new Issue(genmodelFile, "modelPluginID is missing/blank."));
-      return issues;
+      throw new IllegalArgumentException(
+          "GenModel has missing/blank modelPluginID: " + genmodelFile.getAbsolutePath());
     }
 
     enforceBasePackageEqualsModelPluginId(genmodelFile, genModel, modelPluginId, issues);
@@ -136,7 +137,7 @@ public final class GenmodelPrecheck {
       resource.save(null);
     } catch (IOException e) {
       throw new IllegalArgumentException(
-              "Could not save genmodel file: " + genmodelFile.getAbsolutePath(), e);
+          "Could not save genmodel file: " + genmodelFile.getAbsolutePath(), e);
     }
 
     return issues;
@@ -153,7 +154,9 @@ public final class GenmodelPrecheck {
     try {
       XMLInputFactory inFactory = XMLInputFactory.newFactory();
       inFactory.setProperty(XMLInputFactory.SUPPORT_DTD, false);
-      inFactory.setProperty("javax.xml.stream.isSupportingExternalEntities", false);
+      if (inFactory.isPropertySupported(XMLInputFactory.IS_SUPPORTING_EXTERNAL_ENTITIES)) {
+        inFactory.setProperty(XMLInputFactory.IS_SUPPORTING_EXTERNAL_ENTITIES, false);
+      }
       inFactory.setXMLResolver(
           (publicID, systemID, baseURI, namespace) -> {
             throw new XMLStreamException("External entity resolution disabled");

@@ -37,14 +37,15 @@ The following adjustments may be applied automatically:
 **1. Standalone validation**
 
 You can run the precheck to normalize `.genmodel` files before building.
-
+```bash
 vitruv-cli -pg -m MyMetamodel.ecore,MyGenmodel.genmodel
-
+```
 **2. As part of the normal CLI workflow**
 
 The precheck can also run together with project generation.
+```bash
 vitruv-cli -pg -f projectFolder -m MyMetamodel.ecore,MyGenmodel.genmodel -r reactions.reactions
-
+```
 In this case the `.genmodel` files are validated and standardized before the build continues.
 
 ## Framework-internal Dependencies
