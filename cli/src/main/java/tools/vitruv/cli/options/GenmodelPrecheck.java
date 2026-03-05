@@ -64,15 +64,47 @@ public final class GenmodelPrecheck {
       originalXml = Files.readString(genmodelFile.toPath(), StandardCharsets.UTF_8);
     } catch (IOException e) {
       throw new IllegalArgumentException(
-          "Could not read genmodel file: " + genmodelFile.getAbsolutePath(), e);
+              "Could not read genmodel file: " + genmodelFile.getAbsolutePath(), e);
     }
 
+    Set<String> attrsToRemove =
+            Set.of(
+                    "complianceLevel",
+                    "compliance",
+                    "editDirectory",
+                    "editorDirectory",
+                    "testsDirectory",
+                    "editPluginID",
+                    "editorPluginID",
+                    "testsPluginID");
+
+    final String strippedXml;
+    try {
+      strippedXml = stripAttributesWithStax(originalXml, attrsToRemove);
+    } catch (Exception e) {
+      throw new IllegalArgumentException(
+              "Could not strip attributes from genmodel XML: " + genmodelFile.getAbsolutePath(), e);
+    }
+
+    List<Issue> issues = new ArrayList<>();
+
+    if (!originalXml.equals(strippedXml)) {
+      try {
+        Files.writeString(genmodelFile.toPath(), strippedXml, StandardCharsets.UTF_8);
+        issues.add(new Issue(genmodelFile, "Removed attributes: " + String.join(", ", attrsToRemove)));
+      } catch (IOException e) {
+        throw new IllegalArgumentException(
+                "Could not write genmodel file: " + genmodelFile.getAbsolutePath(), e);
+      }
+    }
+
+    // Now it’s safe to load via EMF because unknown attrs are already gone
     ResourceSet resourceSet = new ResourceSetImpl();
     resourceSet.getPackageRegistry().put(GenModelPackage.eNS_URI, GenModelPackage.eINSTANCE);
     resourceSet
-        .getResourceFactoryRegistry()
-        .getExtensionToFactoryMap()
-        .put("genmodel", new XMIResourceFactoryImpl());
+            .getResourceFactoryRegistry()
+            .getExtensionToFactoryMap()
+            .put("genmodel", new XMIResourceFactoryImpl());
 
     URI uri = URI.createFileURI(genmodelFile.getAbsolutePath());
     Resource resource = resourceSet.getResource(uri, true);
@@ -80,7 +112,7 @@ public final class GenmodelPrecheck {
       resource.load(null);
     } catch (IOException e) {
       throw new IllegalArgumentException(
-          "Could not load genmodel file: " + genmodelFile.getAbsolutePath(), e);
+              "Could not load genmodel file: " + genmodelFile.getAbsolutePath(), e);
     }
 
     if (resource.getContents().isEmpty() || !(resource.getContents().get(0) instanceof GenModel)) {
@@ -88,52 +120,12 @@ public final class GenmodelPrecheck {
     }
 
     GenModel genModel = (GenModel) resource.getContents().get(0);
-    List<Issue> issues = new ArrayList<>();
 
     String modelPluginId = safeTrim(genModel.getModelPluginID());
     if (modelPluginId.isEmpty()) {
       issues.add(new Issue(genmodelFile, "modelPluginID is missing/blank."));
       return issues;
     }
-
-    Set<String> attrsToRemove =
-        Set.of(
-            "complianceLevel",
-            "compliance",
-            "editDirectory",
-            "editorDirectory",
-            "testsDirectory",
-            "editPluginID",
-            "editorPluginID",
-            "testsPluginID");
-
-    final String strippedXml;
-    try {
-      strippedXml = stripAttributesWithStax(originalXml, attrsToRemove);
-    } catch (Exception e) {
-      throw new IllegalArgumentException(
-          "Could not strip attributes from genmodel XML: " + genmodelFile.getAbsolutePath(), e);
-    }
-
-    if (!originalXml.equals(strippedXml)) {
-      try {
-        Files.writeString(genmodelFile.toPath(), strippedXml, StandardCharsets.UTF_8);
-        issues.add(
-            new Issue(genmodelFile, "Removed attributes: " + String.join(", ", attrsToRemove)));
-      } catch (IOException e) {
-        throw new IllegalArgumentException(
-            "Could not write genmodel file: " + genmodelFile.getAbsolutePath(), e);
-      }
-    }
-
-    try {
-      resource.unload();
-      resource.load(null);
-    } catch (IOException e) {
-      throw new IllegalArgumentException(
-          "Could not reload genmodel after XML rewrite: " + genmodelFile.getAbsolutePath(), e);
-    }
-    genModel = (GenModel) resource.getContents().get(0);
 
     enforceBasePackageEqualsModelPluginId(genmodelFile, genModel, modelPluginId, issues);
     enforceModelDirectory(genmodelFile, genModel, modelPluginId, issues);
@@ -144,7 +136,7 @@ public final class GenmodelPrecheck {
       resource.save(null);
     } catch (IOException e) {
       throw new IllegalArgumentException(
-          "Could not save genmodel file: " + genmodelFile.getAbsolutePath(), e);
+              "Could not save genmodel file: " + genmodelFile.getAbsolutePath(), e);
     }
 
     return issues;
