@@ -1,5 +1,6 @@
 package tools.vitruv.cli.options;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.StringReader;
@@ -9,6 +10,7 @@ import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 import javax.xml.stream.XMLEventFactory;
 import javax.xml.stream.XMLEventReader;
 import javax.xml.stream.XMLEventWriter;
@@ -19,7 +21,6 @@ import javax.xml.stream.events.Attribute;
 import javax.xml.stream.events.Namespace;
 import javax.xml.stream.events.StartElement;
 import javax.xml.stream.events.XMLEvent;
-import java.util.Set;
 import org.eclipse.emf.codegen.ecore.genmodel.GenModel;
 import org.eclipse.emf.codegen.ecore.genmodel.GenModelPackage;
 import org.eclipse.emf.codegen.ecore.genmodel.GenPackage;
@@ -29,7 +30,7 @@ import org.eclipse.emf.ecore.resource.ResourceSet;
 import org.eclipse.emf.ecore.resource.impl.ResourceSetImpl;
 import org.eclipse.emf.ecore.xmi.impl.XMIResourceFactoryImpl;
 
-/** Validates GenModel files for MWE2 workflow compatibility. */
+/** Validates and standardizes GenModel files for MWE2 workflow compatibility. */
 public final class GenmodelPrecheck {
 
   /** Represents a validation issue found in a GenModel file. */
@@ -48,13 +49,45 @@ public final class GenmodelPrecheck {
     }
   }
 
+  private static final Set<String> ATTRS_TO_REMOVE =
+          Set.of(
+                  "complianceLevel",
+                  "compliance",
+                  "editDirectory",
+                  "editorDirectory",
+                  "testsDirectory",
+                  "editPluginID",
+                  "editorPluginID",
+                  "testsPluginID");
+
   /**
-   * Validates and corrects a GenModel file for MWE2 compatibility.
+   * Inspects a GenModel file and reports the changes that would be applied without modifying it.
+   *
+   * @param genmodelFile the GenModel file to inspect
+   * @return the list of detected issues and planned changes
+   */
+  public List<Issue> inspect(File genmodelFile) {
+    return analyze(genmodelFile, false);
+  }
+
+  /**
+   * Processes a GenModel file and applies the required changes.
    *
    * @param genmodelFile the GenModel file to process
-   * @return a list of issues found and corrected
+   * @return the list of detected issues and applied changes
    */
   public List<Issue> process(File genmodelFile) {
+    return analyze(genmodelFile, true);
+  }
+
+  /**
+   * Analyzes a GenModel file and optionally applies changes.
+   *
+   * @param genmodelFile the GenModel file to analyze
+   * @param applyChanges whether the detected changes should be written back to disk
+   * @return the list of detected issues and applied or planned changes
+   */
+  public List<Issue> analyze(File genmodelFile, boolean applyChanges) {
     if (genmodelFile == null) {
       throw new IllegalArgumentException("genmodelFile must not be null");
     }
@@ -64,57 +97,39 @@ public final class GenmodelPrecheck {
       originalXml = Files.readString(genmodelFile.toPath(), StandardCharsets.UTF_8);
     } catch (IOException e) {
       throw new IllegalArgumentException(
-          "Could not read genmodel file: " + genmodelFile.getAbsolutePath(), e);
+              "Could not read genmodel file: " + genmodelFile.getAbsolutePath(), e);
     }
-
-    Set<String> attrsToRemove =
-        Set.of(
-            "complianceLevel",
-            "compliance",
-            "editDirectory",
-            "editorDirectory",
-            "testsDirectory",
-            "editPluginID",
-            "editorPluginID",
-            "testsPluginID");
 
     final String strippedXml;
     try {
-      strippedXml = stripAttributesWithStax(originalXml, attrsToRemove);
+      strippedXml = stripAttributesWithStax(originalXml, ATTRS_TO_REMOVE);
     } catch (Exception e) {
       throw new IllegalArgumentException(
-          "Could not strip attributes from genmodel XML: " + genmodelFile.getAbsolutePath(), e);
+              "Could not strip attributes from genmodel XML: " + genmodelFile.getAbsolutePath(), e);
     }
 
     List<Issue> issues = new ArrayList<>();
 
     if (!originalXml.equals(strippedXml)) {
-      try {
-        Files.writeString(genmodelFile.toPath(), strippedXml, StandardCharsets.UTF_8);
-        issues.add(
-            new Issue(genmodelFile, "Removed attributes: " + String.join(", ", attrsToRemove)));
-      } catch (IOException e) {
-        throw new IllegalArgumentException(
-            "Could not write genmodel file: " + genmodelFile.getAbsolutePath(), e);
+      issues.add(
+              new Issue(
+                      genmodelFile,
+                      (applyChanges ? "Removed attributes: " : "Would remove attributes: ")
+                              + String.join(", ", ATTRS_TO_REMOVE)));
+
+      if (applyChanges) {
+        try {
+          Files.writeString(genmodelFile.toPath(), strippedXml, StandardCharsets.UTF_8);
+        } catch (IOException e) {
+          throw new IllegalArgumentException(
+                  "Could not write genmodel file: " + genmodelFile.getAbsolutePath(), e);
+        }
       }
     }
 
-    // Now it’s safe to load via EMF because unknown attrs are already gone
-    ResourceSet resourceSet = new ResourceSetImpl();
-    resourceSet.getPackageRegistry().put(GenModelPackage.eNS_URI, GenModelPackage.eINSTANCE);
-    resourceSet
-        .getResourceFactoryRegistry()
-        .getExtensionToFactoryMap()
-        .put("genmodel", new XMIResourceFactoryImpl());
-
+    ResourceSet resourceSet = createResourceSet();
     URI uri = URI.createFileURI(genmodelFile.getAbsolutePath());
-    Resource resource = resourceSet.getResource(uri, true);
-    try {
-      resource.load(null);
-    } catch (IOException e) {
-      throw new IllegalArgumentException(
-          "Could not load genmodel file: " + genmodelFile.getAbsolutePath(), e);
-    }
+    Resource resource = loadResource(resourceSet, uri, applyChanges ? null : strippedXml, genmodelFile);
 
     if (resource.getContents().isEmpty() || !(resource.getContents().get(0) instanceof GenModel)) {
       throw new IllegalArgumentException("Not a valid GenModel: " + genmodelFile.getAbsolutePath());
@@ -125,30 +140,33 @@ public final class GenmodelPrecheck {
     String modelPluginId = safeTrim(genModel.getModelPluginID());
     if (modelPluginId.isEmpty()) {
       throw new IllegalArgumentException(
-          "GenModel has missing/blank modelPluginID: " + genmodelFile.getAbsolutePath());
+              "GenModel has missing/blank modelPluginID: " + genmodelFile.getAbsolutePath());
     }
 
-    enforceBasePackageEqualsModelPluginId(genmodelFile, genModel, modelPluginId, issues);
-    enforceModelDirectory(genmodelFile, genModel, modelPluginId, issues);
-    enforceForeignModel(genmodelFile, genModel, issues);
-    enforceCreationIcons(genmodelFile, genModel, issues);
+    enforceBasePackageEqualsModelPluginId(
+            genmodelFile, genModel, modelPluginId, issues, applyChanges);
+    enforceModelDirectory(genmodelFile, genModel, modelPluginId, issues, applyChanges);
+    enforceForeignModel(genmodelFile, genModel, issues, applyChanges);
+    enforceCreationIcons(genmodelFile, genModel, issues, applyChanges);
 
-    try {
-      resource.save(null);
-    } catch (IOException e) {
-      throw new IllegalArgumentException(
-          "Could not save genmodel file: " + genmodelFile.getAbsolutePath(), e);
+    if (applyChanges) {
+      try {
+        resource.save(null);
+      } catch (IOException e) {
+        throw new IllegalArgumentException(
+                "Could not save genmodel file: " + genmodelFile.getAbsolutePath(), e);
+      }
     }
 
     return issues;
   }
 
   /**
-   * Removes specified XML attributes from the given XML string using StAX parser.
+   * Removes the provided attributes from the XML using StAX.
    *
-   * @param xml the XML content
-   * @param attributeLocalNamesToRemove set of attribute names to remove
-   * @return XML string with specified attributes removed
+   * @param xml the XML source
+   * @param attributeLocalNamesToRemove the local attribute names to remove
+   * @return the XML without the specified attributes
    */
   public String stripAttributesWithStax(String xml, Set<String> attributeLocalNamesToRemove) {
     try {
@@ -158,14 +176,14 @@ public final class GenmodelPrecheck {
         inFactory.setProperty(XMLInputFactory.IS_SUPPORTING_EXTERNAL_ENTITIES, false);
       }
       inFactory.setXMLResolver(
-          (publicID, systemID, baseURI, namespace) -> {
-            throw new XMLStreamException("External entity resolution disabled");
-          });
+              (publicID, systemID, baseURI, namespace) -> {
+                throw new XMLStreamException("External entity resolution disabled");
+              });
       inFactory.setProperty(XMLInputFactory.IS_NAMESPACE_AWARE, true);
 
       XMLOutputFactory outFactory = XMLOutputFactory.newFactory();
       XMLEventFactory eventFactory = XMLEventFactory.newFactory();
-      inFactory.setProperty(XMLInputFactory.IS_NAMESPACE_AWARE, true);
+
       XMLEventReader reader = inFactory.createXMLEventReader(new StringReader(xml));
       StringWriter stringWriter = new StringWriter();
       XMLEventWriter writer = outFactory.createXMLEventWriter(stringWriter);
@@ -186,11 +204,12 @@ public final class GenmodelPrecheck {
             }
           }
 
+          @SuppressWarnings("unchecked")
           Iterator<Namespace> namespaces = startElement.getNamespaces();
 
           StartElement rebuilt =
-              eventFactory.createStartElement(
-                  startElement.getName(), keptAttrs.iterator(), namespaces);
+                  eventFactory.createStartElement(
+                          startElement.getName(), keptAttrs.iterator(), namespaces);
           writer.add(rebuilt);
         } else {
           writer.add(xmlEvent);
@@ -207,47 +226,63 @@ public final class GenmodelPrecheck {
   }
 
   /**
-   * Ensures creationIcons is set to false in the GenModel.
+   * Ensures creationIcons is false.
    *
-   * @param genmodelFile the GenModel file
-   * @param genModel the GenModel to modify
-   * @param issues the issue list to collect changes
+   * @param genmodelFile the source file
+   * @param genModel the GenModel to inspect or mutate
+   * @param issues the issue accumulator
+   * @param applyChanges whether the change should be applied
    */
-  public void enforceCreationIcons(File genmodelFile, GenModel genModel, List<Issue> issues) {
+  public void enforceCreationIcons(
+          File genmodelFile, GenModel genModel, List<Issue> issues, boolean applyChanges) {
     if (genModel.isCreationIcons()) {
-      genModel.setCreationIcons(false);
-      issues.add(new Issue(genmodelFile, "Set creationIcons=false."));
+      if (applyChanges) {
+        genModel.setCreationIcons(false);
+        issues.add(new Issue(genmodelFile, "Set creationIcons=false."));
+      } else {
+        issues.add(new Issue(genmodelFile, "Would set creationIcons=false."));
+      }
     }
   }
 
   /**
-   * Ensures foreignModel entry exists, adding default if missing.
+   * Ensures a foreignModel entry exists.
    *
-   * @param genmodelFile the GenModel file
-   * @param genModel the GenModel to modify
-   * @param issues the issue list to collect changes
+   * @param genmodelFile the source file
+   * @param genModel the GenModel to inspect or mutate
+   * @param issues the issue accumulator
+   * @param applyChanges whether the change should be applied
    */
-  public void enforceForeignModel(File genmodelFile, GenModel genModel, List<Issue> issues) {
+  public void enforceForeignModel(
+          File genmodelFile, GenModel genModel, List<Issue> issues, boolean applyChanges) {
     List<String> foreignModels = genModel.getForeignModel();
 
     if (foreignModels == null || foreignModels.isEmpty()) {
       String defaultModel = genmodelFile.getName().replace(".genmodel", ".ecore");
-      genModel.getForeignModel().add(defaultModel);
-
-      issues.add(new Issue(genmodelFile, "Added missing foreignModel entry: " + defaultModel));
+      if (applyChanges) {
+        genModel.getForeignModel().add(defaultModel);
+        issues.add(new Issue(genmodelFile, "Added missing foreignModel entry: " + defaultModel));
+      } else {
+        issues.add(new Issue(genmodelFile, "Would add missing foreignModel entry: " + defaultModel));
+      }
     }
   }
 
   /**
    * Ensures basePackage equals modelPluginId for all GenPackages.
    *
-   * @param genmodelFile the GenModel file
-   * @param genModel the GenModel to modify
-   * @param modelPluginId the expected plugin ID
-   * @param issues the issue list to collect changes
+   * @param genmodelFile the source file
+   * @param genModel the GenModel to inspect or mutate
+   * @param modelPluginId the expected plugin id
+   * @param issues the issue accumulator
+   * @param applyChanges whether the change should be applied
    */
   public void enforceBasePackageEqualsModelPluginId(
-      File genmodelFile, GenModel genModel, String modelPluginId, List<Issue> issues) {
+          File genmodelFile,
+          GenModel genModel,
+          String modelPluginId,
+          List<Issue> issues,
+          boolean applyChanges) {
 
     List<GenPackage> genPackages = genModel.getGenPackages();
     for (GenPackage genPackage : genPackages) {
@@ -256,23 +291,47 @@ public final class GenmodelPrecheck {
       String label = gpName.isEmpty() ? "<unnamed GenPackage>" : gpName;
 
       if (!modelPluginId.equals(before)) {
-        genPackage.setBasePackage(modelPluginId);
-        if (before.isEmpty()) {
-          issues.add(
-              new Issue(
-                  genmodelFile,
-                  "Set basePackage for genPackage " + label + " to '" + modelPluginId + "'."));
+        if (applyChanges) {
+          genPackage.setBasePackage(modelPluginId);
+          if (before.isEmpty()) {
+            issues.add(
+                    new Issue(
+                            genmodelFile,
+                            "Set basePackage for genPackage " + label + " to '" + modelPluginId + "'."));
+          } else {
+            issues.add(
+                    new Issue(
+                            genmodelFile,
+                            "Changed basePackage for genPackage "
+                                    + label
+                                    + " from '"
+                                    + before
+                                    + "' to '"
+                                    + modelPluginId
+                                    + "'."));
+          }
         } else {
-          issues.add(
-              new Issue(
-                  genmodelFile,
-                  "Changed basePackage for genPackage "
-                      + label
-                      + " from '"
-                      + before
-                      + "' to '"
-                      + modelPluginId
-                      + "'."));
+          if (before.isEmpty()) {
+            issues.add(
+                    new Issue(
+                            genmodelFile,
+                            "Would set basePackage for genPackage "
+                                    + label
+                                    + " to '"
+                                    + modelPluginId
+                                    + "'."));
+          } else {
+            issues.add(
+                    new Issue(
+                            genmodelFile,
+                            "Would change basePackage for genPackage "
+                                    + label
+                                    + " from '"
+                                    + before
+                                    + "' to '"
+                                    + modelPluginId
+                                    + "'."));
+          }
         }
       }
     }
@@ -281,47 +340,106 @@ public final class GenmodelPrecheck {
   /**
    * Ensures modelDirectory follows the required pattern.
    *
-   * @param genmodelFile the GenModel file
-   * @param genModel the GenModel to modify
-   * @param modelPluginId the plugin ID for computing the expected directory
-   * @param issues the issue list to collect changes
+   * @param genmodelFile the source file
+   * @param genModel the GenModel to inspect or mutate
+   * @param modelPluginId the plugin id used to compute the expected directory
+   * @param issues the issue accumulator
+   * @param applyChanges whether the change should be applied
    */
   public void enforceModelDirectory(
-      File genmodelFile, GenModel genModel, String modelPluginId, List<Issue> issues) {
+          File genmodelFile,
+          GenModel genModel,
+          String modelPluginId,
+          List<Issue> issues,
+          boolean applyChanges) {
 
     String expected = normalize("/" + modelPluginId + "/target/generated-sources/ecore");
     String beforeRaw = genModel.getModelDirectory();
     String before = normalize(safeTrim(beforeRaw));
 
     if (before.isEmpty()) {
-      genModel.setModelDirectory(expected);
-      issues.add(new Issue(genmodelFile, "Set modelDirectory to '" + expected + "'."));
+      if (applyChanges) {
+        genModel.setModelDirectory(expected);
+        issues.add(new Issue(genmodelFile, "Set modelDirectory to '" + expected + "'."));
+      } else {
+        issues.add(new Issue(genmodelFile, "Would set modelDirectory to '" + expected + "'."));
+      }
     } else if (!before.equals(expected)) {
-      genModel.setModelDirectory(expected);
-      issues.add(
-          new Issue(
-              genmodelFile,
-              "Changed modelDirectory from '" + beforeRaw + "' to '" + expected + "'."));
+      if (applyChanges) {
+        genModel.setModelDirectory(expected);
+        issues.add(
+                new Issue(
+                        genmodelFile,
+                        "Changed modelDirectory from '" + beforeRaw + "' to '" + expected + "'."));
+      } else {
+        issues.add(
+                new Issue(
+                        genmodelFile,
+                        "Would change modelDirectory from '" + beforeRaw + "' to '" + expected + "'."));
+      }
     }
   }
 
   /**
    * Safely trims a string, treating null as empty string.
    *
-   * @param s the string to trim
-   * @return the trimmed string or empty string if null
+   * @param s the input string
+   * @return the trimmed string or empty string
    */
   public String safeTrim(String s) {
     return s == null ? "" : s.trim();
   }
 
   /**
-   * Normalizes path separators and collapses multiple slashes.
+   * Normalizes a path by converting separators and collapsing repeated slashes.
    *
-   * @param s the path string
+   * @param s the input path
    * @return the normalized path
    */
   public String normalize(String s) {
     return s.replace("\\", "/").replaceAll("/+", "/").trim();
+  }
+
+  /**
+   * Creates the EMF ResourceSet used for loading GenModel resources.
+   *
+   * @return the configured ResourceSet
+   */
+  public ResourceSet createResourceSet() {
+    ResourceSet resourceSet = new ResourceSetImpl();
+    resourceSet.getPackageRegistry().put(GenModelPackage.eNS_URI, GenModelPackage.eINSTANCE);
+    resourceSet
+            .getResourceFactoryRegistry()
+            .getExtensionToFactoryMap()
+            .put("genmodel", new XMIResourceFactoryImpl());
+    return resourceSet;
+  }
+
+  /**
+   * Loads a GenModel resource either from disk or from an in-memory XML string.
+   *
+   * @param resourceSet the ResourceSet to use
+   * @param uri the file URI of the GenModel
+   * @param xmlOverride optional XML content to load instead of the file on disk
+   * @param genmodelFile the source file for error reporting
+   * @return the loaded Resource
+   */
+  public Resource loadResource(
+          ResourceSet resourceSet, URI uri, String xmlOverride, File genmodelFile) {
+    Resource resource;
+    try {
+      if (xmlOverride == null) {
+        resource = resourceSet.getResource(uri, true);
+        resource.load(null);
+      } else {
+        resource = resourceSet.createResource(uri);
+        resource.load(
+                new ByteArrayInputStream(xmlOverride.getBytes(StandardCharsets.UTF_8)), null);
+      }
+      return resource;
+    } catch (IOException e) {
+      throw new IllegalArgumentException(
+              "Could not load genmodel file: " + genmodelFile.getAbsolutePath(), e);
+    }
   }
 }

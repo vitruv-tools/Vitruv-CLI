@@ -13,6 +13,7 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 
+import tools.vitruv.cli.options.ApplyOption;
 import tools.vitruv.cli.configuration.VitruvConfiguration;
 import tools.vitruv.cli.exceptions.MissingModelException;
 import tools.vitruv.cli.options.FolderOption;
@@ -60,6 +61,7 @@ public class CLI {
       ReactionOption reactionOpt = new ReactionOption();
       ReactionsOption reactionsOpt = new ReactionsOption();
       GenmodelPrecheckOption precheckOpt = new GenmodelPrecheckOption();
+      ApplyOption applyOpt = new ApplyOption();
 
       if (precheckRequested) {
         folderOpt.setRequired(false);
@@ -75,6 +77,7 @@ public class CLI {
       options.addOption(reactionOpt);
       options.addOption(reactionsOpt);
       options.addOption(precheckOpt);
+      options.addOption(applyOpt);
 
       CommandLine line = parser.parse(options, args);
 
