@@ -38,8 +38,8 @@ class PrecheckAndMweIntegrationTest {
     Path ecore = ecoreDir.resolve("model.ecore");
     Path genmodel = ecoreDir.resolve("model.genmodel");
 
-    copyResource("/model/simulink.ecore", ecore);
-    copyResource("/model/simulink.genmodel", genmodel);
+    copyResource("/model/model.ecore", ecore);
+    copyResource("/model/model.genmodel", genmodel);
 
     URI platformRoot = URI.createURI("platform:/resource/" + modelProjectName + "/");
     URI fileRoot = URI.createFileURI(modelProjectDir.toAbsolutePath() + "/");

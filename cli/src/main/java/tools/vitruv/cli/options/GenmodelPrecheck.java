@@ -50,15 +50,15 @@ public final class GenmodelPrecheck {
   }
 
   private static final Set<String> ATTRS_TO_REMOVE =
-          Set.of(
-                  "complianceLevel",
-                  "compliance",
-                  "editDirectory",
-                  "editorDirectory",
-                  "testsDirectory",
-                  "editPluginID",
-                  "editorPluginID",
-                  "testsPluginID");
+      Set.of(
+          "complianceLevel",
+          "compliance",
+          "editDirectory",
+          "editorDirectory",
+          "testsDirectory",
+          "editPluginID",
+          "editorPluginID",
+          "testsPluginID");
 
   /**
    * Inspects a GenModel file and reports the changes that would be applied without modifying it.
@@ -97,7 +97,7 @@ public final class GenmodelPrecheck {
       originalXml = Files.readString(genmodelFile.toPath(), StandardCharsets.UTF_8);
     } catch (IOException e) {
       throw new IllegalArgumentException(
-              "Could not read genmodel file: " + genmodelFile.getAbsolutePath(), e);
+          "Could not read genmodel file: " + genmodelFile.getAbsolutePath(), e);
     }
 
     final String strippedXml;
@@ -105,31 +105,41 @@ public final class GenmodelPrecheck {
       strippedXml = stripAttributesWithStax(originalXml, ATTRS_TO_REMOVE);
     } catch (Exception e) {
       throw new IllegalArgumentException(
-              "Could not strip attributes from genmodel XML: " + genmodelFile.getAbsolutePath(), e);
+          "Could not strip attributes from genmodel XML: " + genmodelFile.getAbsolutePath(), e);
     }
 
     List<Issue> issues = new ArrayList<>();
 
     if (!originalXml.equals(strippedXml)) {
-      issues.add(
-              new Issue(
-                      genmodelFile,
-                      (applyChanges ? "Removed attributes: " : "Would remove attributes: ")
-                              + String.join(", ", ATTRS_TO_REMOVE)));
+      List<String> foundAttrs = new ArrayList<>();
+      for (String attr : ATTRS_TO_REMOVE) {
+        if (originalXml.contains(attr + "=")) {
+          foundAttrs.add(attr);
+        }
+      }
+
+      if (!foundAttrs.isEmpty()) {
+        issues.add(
+            new Issue(
+                genmodelFile,
+                (applyChanges ? "Removed attributes: " : "Would remove attributes: ")
+                    + String.join(", ", foundAttrs)));
+      }
 
       if (applyChanges) {
         try {
           Files.writeString(genmodelFile.toPath(), strippedXml, StandardCharsets.UTF_8);
         } catch (IOException e) {
           throw new IllegalArgumentException(
-                  "Could not write genmodel file: " + genmodelFile.getAbsolutePath(), e);
+              "Could not write genmodel file: " + genmodelFile.getAbsolutePath(), e);
         }
       }
     }
 
     ResourceSet resourceSet = createResourceSet();
     URI uri = URI.createFileURI(genmodelFile.getAbsolutePath());
-    Resource resource = loadResource(resourceSet, uri, applyChanges ? null : strippedXml, genmodelFile);
+    Resource resource =
+        loadResource(resourceSet, uri, applyChanges ? null : strippedXml, genmodelFile);
 
     if (resource.getContents().isEmpty() || !(resource.getContents().get(0) instanceof GenModel)) {
       throw new IllegalArgumentException("Not a valid GenModel: " + genmodelFile.getAbsolutePath());
@@ -140,11 +150,11 @@ public final class GenmodelPrecheck {
     String modelPluginId = safeTrim(genModel.getModelPluginID());
     if (modelPluginId.isEmpty()) {
       throw new IllegalArgumentException(
-              "GenModel has missing/blank modelPluginID: " + genmodelFile.getAbsolutePath());
+          "GenModel has missing/blank modelPluginID: " + genmodelFile.getAbsolutePath());
     }
 
     enforceBasePackageEqualsModelPluginId(
-            genmodelFile, genModel, modelPluginId, issues, applyChanges);
+        genmodelFile, genModel, modelPluginId, issues, applyChanges);
     enforceModelDirectory(genmodelFile, genModel, modelPluginId, issues, applyChanges);
     enforceForeignModel(genmodelFile, genModel, issues, applyChanges);
     enforceCreationIcons(genmodelFile, genModel, issues, applyChanges);
@@ -154,7 +164,7 @@ public final class GenmodelPrecheck {
         resource.save(null);
       } catch (IOException e) {
         throw new IllegalArgumentException(
-                "Could not save genmodel file: " + genmodelFile.getAbsolutePath(), e);
+            "Could not save genmodel file: " + genmodelFile.getAbsolutePath(), e);
       }
     }
 
@@ -176,9 +186,9 @@ public final class GenmodelPrecheck {
         inFactory.setProperty(XMLInputFactory.IS_SUPPORTING_EXTERNAL_ENTITIES, false);
       }
       inFactory.setXMLResolver(
-              (publicID, systemID, baseURI, namespace) -> {
-                throw new XMLStreamException("External entity resolution disabled");
-              });
+          (publicID, systemID, baseURI, namespace) -> {
+            throw new XMLStreamException("External entity resolution disabled");
+          });
       inFactory.setProperty(XMLInputFactory.IS_NAMESPACE_AWARE, true);
 
       XMLOutputFactory outFactory = XMLOutputFactory.newFactory();
@@ -208,8 +218,8 @@ public final class GenmodelPrecheck {
           Iterator<Namespace> namespaces = startElement.getNamespaces();
 
           StartElement rebuilt =
-                  eventFactory.createStartElement(
-                          startElement.getName(), keptAttrs.iterator(), namespaces);
+              eventFactory.createStartElement(
+                  startElement.getName(), keptAttrs.iterator(), namespaces);
           writer.add(rebuilt);
         } else {
           writer.add(xmlEvent);
@@ -234,7 +244,7 @@ public final class GenmodelPrecheck {
    * @param applyChanges whether the change should be applied
    */
   public void enforceCreationIcons(
-          File genmodelFile, GenModel genModel, List<Issue> issues, boolean applyChanges) {
+      File genmodelFile, GenModel genModel, List<Issue> issues, boolean applyChanges) {
     if (genModel.isCreationIcons()) {
       if (applyChanges) {
         genModel.setCreationIcons(false);
@@ -254,7 +264,7 @@ public final class GenmodelPrecheck {
    * @param applyChanges whether the change should be applied
    */
   public void enforceForeignModel(
-          File genmodelFile, GenModel genModel, List<Issue> issues, boolean applyChanges) {
+      File genmodelFile, GenModel genModel, List<Issue> issues, boolean applyChanges) {
     List<String> foreignModels = genModel.getForeignModel();
 
     if (foreignModels == null || foreignModels.isEmpty()) {
@@ -263,7 +273,8 @@ public final class GenmodelPrecheck {
         genModel.getForeignModel().add(defaultModel);
         issues.add(new Issue(genmodelFile, "Added missing foreignModel entry: " + defaultModel));
       } else {
-        issues.add(new Issue(genmodelFile, "Would add missing foreignModel entry: " + defaultModel));
+        issues.add(
+            new Issue(genmodelFile, "Would add missing foreignModel entry: " + defaultModel));
       }
     }
   }
@@ -278,11 +289,11 @@ public final class GenmodelPrecheck {
    * @param applyChanges whether the change should be applied
    */
   public void enforceBasePackageEqualsModelPluginId(
-          File genmodelFile,
-          GenModel genModel,
-          String modelPluginId,
-          List<Issue> issues,
-          boolean applyChanges) {
+      File genmodelFile,
+      GenModel genModel,
+      String modelPluginId,
+      List<Issue> issues,
+      boolean applyChanges) {
 
     List<GenPackage> genPackages = genModel.getGenPackages();
     for (GenPackage genPackage : genPackages) {
@@ -295,42 +306,42 @@ public final class GenmodelPrecheck {
           genPackage.setBasePackage(modelPluginId);
           if (before.isEmpty()) {
             issues.add(
-                    new Issue(
-                            genmodelFile,
-                            "Set basePackage for genPackage " + label + " to '" + modelPluginId + "'."));
+                new Issue(
+                    genmodelFile,
+                    "Set basePackage for genPackage " + label + " to '" + modelPluginId + "'."));
           } else {
             issues.add(
-                    new Issue(
-                            genmodelFile,
-                            "Changed basePackage for genPackage "
-                                    + label
-                                    + " from '"
-                                    + before
-                                    + "' to '"
-                                    + modelPluginId
-                                    + "'."));
+                new Issue(
+                    genmodelFile,
+                    "Changed basePackage for genPackage "
+                        + label
+                        + " from '"
+                        + before
+                        + "' to '"
+                        + modelPluginId
+                        + "'."));
           }
         } else {
           if (before.isEmpty()) {
             issues.add(
-                    new Issue(
-                            genmodelFile,
-                            "Would set basePackage for genPackage "
-                                    + label
-                                    + " to '"
-                                    + modelPluginId
-                                    + "'."));
+                new Issue(
+                    genmodelFile,
+                    "Would set basePackage for genPackage "
+                        + label
+                        + " to '"
+                        + modelPluginId
+                        + "'."));
           } else {
             issues.add(
-                    new Issue(
-                            genmodelFile,
-                            "Would change basePackage for genPackage "
-                                    + label
-                                    + " from '"
-                                    + before
-                                    + "' to '"
-                                    + modelPluginId
-                                    + "'."));
+                new Issue(
+                    genmodelFile,
+                    "Would change basePackage for genPackage "
+                        + label
+                        + " from '"
+                        + before
+                        + "' to '"
+                        + modelPluginId
+                        + "'."));
           }
         }
       }
@@ -347,11 +358,11 @@ public final class GenmodelPrecheck {
    * @param applyChanges whether the change should be applied
    */
   public void enforceModelDirectory(
-          File genmodelFile,
-          GenModel genModel,
-          String modelPluginId,
-          List<Issue> issues,
-          boolean applyChanges) {
+      File genmodelFile,
+      GenModel genModel,
+      String modelPluginId,
+      List<Issue> issues,
+      boolean applyChanges) {
 
     String expected = normalize("/" + modelPluginId + "/target/generated-sources/ecore");
     String beforeRaw = genModel.getModelDirectory();
@@ -368,14 +379,14 @@ public final class GenmodelPrecheck {
       if (applyChanges) {
         genModel.setModelDirectory(expected);
         issues.add(
-                new Issue(
-                        genmodelFile,
-                        "Changed modelDirectory from '" + beforeRaw + "' to '" + expected + "'."));
+            new Issue(
+                genmodelFile,
+                "Changed modelDirectory from '" + beforeRaw + "' to '" + expected + "'."));
       } else {
         issues.add(
-                new Issue(
-                        genmodelFile,
-                        "Would change modelDirectory from '" + beforeRaw + "' to '" + expected + "'."));
+            new Issue(
+                genmodelFile,
+                "Would change modelDirectory from '" + beforeRaw + "' to '" + expected + "'."));
       }
     }
   }
@@ -409,9 +420,9 @@ public final class GenmodelPrecheck {
     ResourceSet resourceSet = new ResourceSetImpl();
     resourceSet.getPackageRegistry().put(GenModelPackage.eNS_URI, GenModelPackage.eINSTANCE);
     resourceSet
-            .getResourceFactoryRegistry()
-            .getExtensionToFactoryMap()
-            .put("genmodel", new XMIResourceFactoryImpl());
+        .getResourceFactoryRegistry()
+        .getExtensionToFactoryMap()
+        .put("genmodel", new XMIResourceFactoryImpl());
     return resourceSet;
   }
 
@@ -425,7 +436,7 @@ public final class GenmodelPrecheck {
    * @return the loaded Resource
    */
   public Resource loadResource(
-          ResourceSet resourceSet, URI uri, String xmlOverride, File genmodelFile) {
+      ResourceSet resourceSet, URI uri, String xmlOverride, File genmodelFile) {
     Resource resource;
     try {
       if (xmlOverride == null) {
@@ -433,13 +444,12 @@ public final class GenmodelPrecheck {
         resource.load(null);
       } else {
         resource = resourceSet.createResource(uri);
-        resource.load(
-                new ByteArrayInputStream(xmlOverride.getBytes(StandardCharsets.UTF_8)), null);
+        resource.load(new ByteArrayInputStream(xmlOverride.getBytes(StandardCharsets.UTF_8)), null);
       }
       return resource;
     } catch (IOException e) {
       throw new IllegalArgumentException(
-              "Could not load genmodel file: " + genmodelFile.getAbsolutePath(), e);
+          "Could not load genmodel file: " + genmodelFile.getAbsolutePath(), e);
     }
   }
 }

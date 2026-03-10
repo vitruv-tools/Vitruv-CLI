@@ -10,23 +10,19 @@ import tools.vitruv.cli.configuration.MetamodelLocation;
 import tools.vitruv.cli.configuration.VitruvConfiguration;
 import tools.vitruv.framework.vsum.VirtualModelBuilder;
 
-/**
- * CLI option to inspect and optionally standardize .genmodel files for MWE2 compatibility.
- */
+/** CLI option to inspect and optionally standardize .genmodel files for MWE2 compatibility. */
 public class GenmodelPrecheckOption extends VitruvCLIOption {
 
   private static final String OPT = "pg";
   private static final String APPLY = "apply";
 
-  /**
-   * Constructs the genmodel precheck option.
-   */
+  /** Constructs the genmodel precheck option. */
   public GenmodelPrecheckOption() {
     super(
-            OPT,
-            "precheck-genmodel",
-            false,
-            "Precheck and standardize .genmodel files for MWE2 template compatibility.");
+        OPT,
+        "precheck-genmodel",
+        false,
+        "Precheck and standardize .genmodel files for MWE2 template compatibility.");
     this.setArgs(0);
   }
 
@@ -56,7 +52,7 @@ public class GenmodelPrecheckOption extends VitruvCLIOption {
     List<MetamodelLocation> locations = configuration.getMetaModelLocations();
     if (locations == null || locations.isEmpty()) {
       throw new IllegalArgumentException(
-              "No metamodels configured. Provide -m/--metamodel before running --precheck-genmodel.");
+          "No metamodels configured. Provide -m/--metamodel before running --precheck-genmodel.");
     }
 
     GenmodelPrecheck precheck = new GenmodelPrecheck();
@@ -82,7 +78,7 @@ public class GenmodelPrecheckOption extends VitruvCLIOption {
 
     if (!failures.isEmpty()) {
       throw new IllegalArgumentException(
-              "Genmodel precheck failed:\n- " + String.join("\n- ", failures));
+          "Genmodel precheck failed:\n- " + String.join("\n- ", failures));
     }
 
     if (previewIssues.isEmpty()) {
@@ -97,8 +93,8 @@ public class GenmodelPrecheckOption extends VitruvCLIOption {
 
     if (!applyImmediately) {
       if (!askForFixConfirmation()) {
-        System.out.println("Process finished without modifying genmodel files.");
-        return;
+        throw new IllegalArgumentException(
+            "Genmodel precheck found issues and fixes were declined. Execution stopped.");
       }
     }
 
@@ -136,19 +132,19 @@ public class GenmodelPrecheckOption extends VitruvCLIOption {
 
   @Override
   public VirtualModelBuilder preBuild(
-          CommandLine cmd, VirtualModelBuilder builder, VitruvConfiguration configuration) {
+      CommandLine cmd, VirtualModelBuilder builder, VitruvConfiguration configuration) {
     return builder;
   }
 
   @Override
   public VirtualModelBuilder applyInternal(
-          CommandLine cmd, VirtualModelBuilder builder, VitruvConfiguration configuration) {
+      CommandLine cmd, VirtualModelBuilder builder, VitruvConfiguration configuration) {
     return builder;
   }
 
   @Override
   public VirtualModelBuilder postBuild(
-          CommandLine cmd, VirtualModelBuilder builder, VitruvConfiguration configuration) {
+      CommandLine cmd, VirtualModelBuilder builder, VitruvConfiguration configuration) {
     return builder;
   }
 }
