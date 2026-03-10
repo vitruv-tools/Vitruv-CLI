@@ -88,87 +88,224 @@ public final class GenmodelPrecheck {
    * @return the list of detected issues and applied or planned changes
    */
   public List<Issue> analyze(File genmodelFile, boolean applyChanges) {
-    if (genmodelFile == null) {
-      throw new IllegalArgumentException("genmodelFile must not be null");
-    }
+    validateGenmodelFile(genmodelFile);
 
-    final String originalXml;
-    try {
-      originalXml = Files.readString(genmodelFile.toPath(), StandardCharsets.UTF_8);
-    } catch (IOException e) {
-      throw new IllegalArgumentException(
-          "Could not read genmodel file: " + genmodelFile.getAbsolutePath(), e);
-    }
-
-    final String strippedXml;
-    try {
-      strippedXml = stripAttributesWithStax(originalXml, ATTRS_TO_REMOVE);
-    } catch (Exception e) {
-      throw new IllegalArgumentException(
-          "Could not strip attributes from genmodel XML: " + genmodelFile.getAbsolutePath(), e);
-    }
+    String originalXml = readGenmodelXml(genmodelFile);
+    String strippedXml = stripGenmodelXml(genmodelFile, originalXml);
 
     List<Issue> issues = new ArrayList<>();
-
-    if (!originalXml.equals(strippedXml)) {
-      List<String> foundAttrs = new ArrayList<>();
-      for (String attr : ATTRS_TO_REMOVE) {
-        if (originalXml.contains(attr + "=")) {
-          foundAttrs.add(attr);
-        }
-      }
-
-      if (!foundAttrs.isEmpty()) {
-        issues.add(
-            new Issue(
-                genmodelFile,
-                (applyChanges ? "Removed attributes: " : "Would remove attributes: ")
-                    + String.join(", ", foundAttrs)));
-      }
-
-      if (applyChanges) {
-        try {
-          Files.writeString(genmodelFile.toPath(), strippedXml, StandardCharsets.UTF_8);
-        } catch (IOException e) {
-          throw new IllegalArgumentException(
-              "Could not write genmodel file: " + genmodelFile.getAbsolutePath(), e);
-        }
-      }
-    }
+    handleRemovedAttributes(genmodelFile, originalXml, strippedXml, issues, applyChanges);
 
     ResourceSet resourceSet = createResourceSet();
     URI uri = URI.createFileURI(genmodelFile.getAbsolutePath());
     Resource resource =
-        loadResource(resourceSet, uri, applyChanges ? null : strippedXml, genmodelFile);
+        loadAnalyzedResource(resourceSet, uri, genmodelFile, strippedXml, applyChanges);
 
+    GenModel genModel = extractGenModel(resource, genmodelFile);
+    String modelPluginId = requireModelPluginId(genModel, genmodelFile);
+
+    applyGenmodelRules(genmodelFile, genModel, modelPluginId, issues, applyChanges);
+    saveResourceIfNeeded(resource, genmodelFile, applyChanges);
+
+    return issues;
+  }
+
+  /**
+   * Validates that the provided genmodel file reference is not null.
+   *
+   * @param genmodelFile the genmodel file reference
+   */
+  private void validateGenmodelFile(File genmodelFile) {
+    if (genmodelFile == null) {
+      throw new IllegalArgumentException("genmodelFile must not be null");
+    }
+  }
+
+  /**
+   * Reads the raw XML content of the genmodel file.
+   *
+   * @param genmodelFile the genmodel file
+   * @return the XML content
+   */
+  private String readGenmodelXml(File genmodelFile) {
+    try {
+      return Files.readString(genmodelFile.toPath(), StandardCharsets.UTF_8);
+    } catch (IOException e) {
+      throw new IllegalArgumentException(
+          "Could not read genmodel file: " + genmodelFile.getAbsolutePath(), e);
+    }
+  }
+
+  /**
+   * Strips unsupported attributes from the genmodel XML.
+   *
+   * @param genmodelFile the genmodel file
+   * @param originalXml the original XML content
+   * @return the stripped XML content
+   */
+  private String stripGenmodelXml(File genmodelFile, String originalXml) {
+    try {
+      return stripAttributesWithStax(originalXml, ATTRS_TO_REMOVE);
+    } catch (Exception e) {
+      throw new IllegalArgumentException(
+          "Could not strip attributes from genmodel XML: " + genmodelFile.getAbsolutePath(), e);
+    }
+  }
+
+  /**
+   * Reports removed attributes and writes the stripped XML when changes should be applied.
+   *
+   * @param genmodelFile the genmodel file
+   * @param originalXml the original XML
+   * @param strippedXml the stripped XML
+   * @param issues the issue collector
+   * @param applyChanges whether changes should be written to disk
+   */
+  private void handleRemovedAttributes(
+      File genmodelFile,
+      String originalXml,
+      String strippedXml,
+      List<Issue> issues,
+      boolean applyChanges) {
+
+    if (originalXml.equals(strippedXml)) {
+      return;
+    }
+
+    List<String> foundAttrs = findPresentAttributes(originalXml);
+    if (!foundAttrs.isEmpty()) {
+      issues.add(
+          new Issue(
+              genmodelFile,
+              (applyChanges ? "Removed attributes: " : "Would remove attributes: ")
+                  + String.join(", ", foundAttrs)));
+    }
+
+    if (applyChanges) {
+      writeGenmodelXml(genmodelFile, strippedXml);
+    }
+  }
+
+  /**
+   * Finds the removable attributes that are actually present in the XML.
+   *
+   * @param xml the XML content
+   * @return the list of present removable attributes
+   */
+  private List<String> findPresentAttributes(String xml) {
+    List<String> foundAttrs = new ArrayList<>();
+    for (String attr : ATTRS_TO_REMOVE) {
+      if (xml.contains(attr + "=")) {
+        foundAttrs.add(attr);
+      }
+    }
+    return foundAttrs;
+  }
+
+  /**
+   * Writes XML content back to the genmodel file.
+   *
+   * @param genmodelFile the genmodel file
+   * @param xml the XML content to write
+   */
+  private void writeGenmodelXml(File genmodelFile, String xml) {
+    try {
+      Files.writeString(genmodelFile.toPath(), xml, StandardCharsets.UTF_8);
+    } catch (IOException e) {
+      throw new IllegalArgumentException(
+          "Could not write genmodel file: " + genmodelFile.getAbsolutePath(), e);
+    }
+  }
+
+  /**
+   * Loads the resource either from disk or from stripped in-memory XML depending on the mode.
+   *
+   * @param resourceSet the resource set
+   * @param uri the file URI
+   * @param genmodelFile the genmodel file
+   * @param strippedXml the stripped XML
+   * @param applyChanges whether changes are already written to disk
+   * @return the loaded resource
+   */
+  private Resource loadAnalyzedResource(
+      ResourceSet resourceSet,
+      URI uri,
+      File genmodelFile,
+      String strippedXml,
+      boolean applyChanges) {
+    return loadResource(resourceSet, uri, applyChanges ? null : strippedXml, genmodelFile);
+  }
+
+  /**
+   * Extracts the GenModel from the resource and validates its type.
+   *
+   * @param resource the loaded EMF resource
+   * @param genmodelFile the genmodel file
+   * @return the extracted GenModel
+   */
+  private GenModel extractGenModel(Resource resource, File genmodelFile) {
     if (resource.getContents().isEmpty() || !(resource.getContents().get(0) instanceof GenModel)) {
       throw new IllegalArgumentException("Not a valid GenModel: " + genmodelFile.getAbsolutePath());
     }
+    return (GenModel) resource.getContents().get(0);
+  }
 
-    GenModel genModel = (GenModel) resource.getContents().get(0);
-
+  /**
+   * Validates and returns the modelPluginID.
+   *
+   * @param genModel the GenModel
+   * @param genmodelFile the genmodel file
+   * @return the non-blank modelPluginID
+   */
+  private String requireModelPluginId(GenModel genModel, File genmodelFile) {
     String modelPluginId = safeTrim(genModel.getModelPluginID());
     if (modelPluginId.isEmpty()) {
       throw new IllegalArgumentException(
           "GenModel has missing/blank modelPluginID: " + genmodelFile.getAbsolutePath());
     }
+    return modelPluginId;
+  }
 
+  /**
+   * Applies or previews all GenModel normalization rules.
+   *
+   * @param genmodelFile the genmodel file
+   * @param genModel the GenModel
+   * @param modelPluginId the required model plugin id
+   * @param issues the issue collector
+   * @param applyChanges whether changes should be applied
+   */
+  private void applyGenmodelRules(
+      File genmodelFile,
+      GenModel genModel,
+      String modelPluginId,
+      List<Issue> issues,
+      boolean applyChanges) {
     enforceBasePackageEqualsModelPluginId(
         genmodelFile, genModel, modelPluginId, issues, applyChanges);
     enforceModelDirectory(genmodelFile, genModel, modelPluginId, issues, applyChanges);
     enforceForeignModel(genmodelFile, genModel, issues, applyChanges);
     enforceCreationIcons(genmodelFile, genModel, issues, applyChanges);
+  }
 
-    if (applyChanges) {
-      try {
-        resource.save(null);
-      } catch (IOException e) {
-        throw new IllegalArgumentException(
-            "Could not save genmodel file: " + genmodelFile.getAbsolutePath(), e);
-      }
+  /**
+   * Saves the resource if changes are being applied.
+   *
+   * @param resource the EMF resource
+   * @param genmodelFile the genmodel file
+   * @param applyChanges whether changes should be saved
+   */
+  private void saveResourceIfNeeded(Resource resource, File genmodelFile, boolean applyChanges) {
+    if (!applyChanges) {
+      return;
     }
 
-    return issues;
+    try {
+      resource.save(null);
+    } catch (IOException e) {
+      throw new IllegalArgumentException(
+          "Could not save genmodel file: " + genmodelFile.getAbsolutePath(), e);
+    }
   }
 
   /**

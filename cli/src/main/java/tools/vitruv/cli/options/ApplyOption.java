@@ -15,21 +15,25 @@ public class ApplyOption extends VitruvCLIOption {
     this.setArgs(0);
   }
 
+  /** No-op implementation. */
   @Override
   public void prepare(CommandLine cmd, VitruvConfiguration configuration) {}
 
+  /** No-op implementation. */
   @Override
   public VirtualModelBuilder preBuild(
       CommandLine cmd, VirtualModelBuilder builder, VitruvConfiguration configuration) {
     return builder;
   }
 
+  /** No-op implementation. */
   @Override
   public VirtualModelBuilder applyInternal(
       CommandLine cmd, VirtualModelBuilder builder, VitruvConfiguration configuration) {
     return builder;
   }
 
+  /** No-op implementation. */
   @Override
   public VirtualModelBuilder postBuild(
       CommandLine cmd, VirtualModelBuilder builder, VitruvConfiguration configuration) {

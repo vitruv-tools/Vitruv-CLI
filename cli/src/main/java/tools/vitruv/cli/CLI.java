@@ -52,135 +52,25 @@ public class CLI {
     CommandLineParser parser = new DefaultParser();
     VitruvConfiguration configuration = new VitruvConfiguration();
 
-    boolean precheckRequested = hasArg(args, "-pg") || hasArg(args, "--precheck-genmodel");
-
     try {
-      MetamodelOption metamodelOpt = new MetamodelOption();
-      FolderOption folderOpt = new FolderOption();
-      UserInteractorOption userOpt = new UserInteractorOption();
-      ReactionOption reactionOpt = new ReactionOption();
-      ReactionsOption reactionsOpt = new ReactionsOption();
-      GenmodelPrecheckOption precheckOpt = new GenmodelPrecheckOption();
-      ApplyOption applyOpt = new ApplyOption();
+      ParsedCli parsedCli = createParsedCli(parser, args);
+      CommandLine line = parsedCli.line();
 
-      if (precheckRequested) {
-        folderOpt.setRequired(false);
-        userOpt.setRequired(false);
-        reactionOpt.setRequired(false);
-        reactionsOpt.setRequired(false);
-      }
-
-      Options options = new Options();
-      options.addOption(metamodelOpt);
-      options.addOption(folderOpt);
-      options.addOption(userOpt);
-      options.addOption(reactionOpt);
-      options.addOption(reactionsOpt);
-      options.addOption(precheckOpt);
-      options.addOption(applyOpt);
-
-      CommandLine line = parser.parse(options, args);
-
-      if (line.hasOption("r") && line.hasOption("rs")) {
-        throw new ParseException(
-            "Options -r/--reaction and -rs/--reactions-source are mutually exclusive.");
-      }
+      validateReactionOptions(line);
 
       VirtualModelBuilder builder = new VirtualModelBuilder();
 
-      if (line.hasOption("m")) {
-        System.out.println(
-            "Preparing option "
-                + metamodelOpt.getLongOpt()
-                + " with value "
-                + Arrays.toString(line.getOptionValues("m")));
-        metamodelOpt.prepare(line, configuration);
-      }
+      prepareOptionsInOrder(line, configuration, parsedCli);
 
-      if (line.hasOption("pg")) {
-        System.out.println("Preparing option " + precheckOpt.getLongOpt() + " with value []");
-        precheckOpt.prepare(line, configuration);
-
-        if (!line.hasOption("f")) {
-          return;
-        }
-      }
-
-      if (line.hasOption("f")) {
-        System.out.println(
-            "Preparing option "
-                + folderOpt.getLongOpt()
-                + " with value "
-                + Arrays.toString(line.getOptionValues("f")));
-        folderOpt.prepare(line, configuration);
-      }
-      if (line.hasOption("u")) {
-        System.out.println(
-            "Preparing option "
-                + userOpt.getLongOpt()
-                + " with value "
-                + Arrays.toString(line.getOptionValues("u")));
-        userOpt.prepare(line, configuration);
-      }
-      if (line.hasOption("r")) {
-        System.out.println(
-            "Preparing option "
-                + reactionOpt.getLongOpt()
-                + " with value "
-                + Arrays.toString(line.getOptionValues("r")));
-        reactionOpt.prepare(line, configuration);
-      }
-      if (line.hasOption("rs")) {
-        System.out.println(
-            "Preparing option "
-                + reactionsOpt.getLongOpt()
-                + " with value "
-                + Arrays.toString(line.getOptionValues("rs")));
-        reactionsOpt.prepare(line, configuration);
+      if (shouldStopAfterPrecheck(line)) {
+        return;
       }
 
       generateFiles(configuration);
+      runPreBuild(line, builder, configuration);
+      runMavenBuild(configuration);
+      runPostBuild(line, builder, configuration);
 
-      for (Option option : line.getOptions()) {
-        System.out.println(
-            "Preprocessing option "
-                + option.getLongOpt()
-                + " with value "
-                + option.getValuesList());
-        ((VitruvCLIOption) option).preBuild(line, builder, configuration);
-      }
-
-      ProcessBuilder pbuilder;
-      String command = "mvn clean verify";
-      if (System.getProperty("os.name").toLowerCase().contains("win")) {
-        pbuilder = new ProcessBuilder("cmd.exe", "/c", command);
-      } else {
-        pbuilder = new ProcessBuilder("bash", "-c", command);
-      }
-      pbuilder.directory(
-          new File(configuration.getLocalPath().toFile().getAbsoluteFile().toString().trim()));
-      Process process = pbuilder.start();
-
-      BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
-      String oline;
-      while ((oline = reader.readLine()) != null) {
-        System.out.println(oline);
-      }
-      process.waitFor();
-      if (process.exitValue() != 0) {
-        throw new Error(
-            "Error occurred during maven build! Please fix your setup accordingly! Exit code: "
-                + process.exitValue());
-      }
-
-      for (Option option : line.getOptions()) {
-        System.out.println(
-            "Postprocessing option "
-                + option.getLongOpt()
-                + " with value "
-                + option.getValuesList());
-        ((VitruvCLIOption) option).postBuild(line, builder, configuration);
-      }
       System.out.println(builder.buildAndInitialize());
     } catch (ParseException exp) {
       System.out.println("Parsing failed.  Reason: " + exp.getMessage());
@@ -192,6 +82,210 @@ public class CLI {
       System.out.println("Generating files failed (missing models).  Reason: " + e.getMessage());
     }
   }
+
+  /**
+   * Parses CLI arguments and creates the option instances used by this invocation.
+   *
+   * @param parser the command line parser
+   * @param args the raw CLI arguments
+   * @return the parsed CLI data
+   * @throws ParseException if parsing fails
+   */
+  private ParsedCli createParsedCli(CommandLineParser parser, String[] args) throws ParseException {
+    boolean precheckRequested = hasArg(args, "-pg") || hasArg(args, "--precheck-genmodel");
+
+    MetamodelOption metamodelOpt = new MetamodelOption();
+    FolderOption folderOpt = new FolderOption();
+    UserInteractorOption userOpt = new UserInteractorOption();
+    ReactionOption reactionOpt = new ReactionOption();
+    ReactionsOption reactionsOpt = new ReactionsOption();
+    GenmodelPrecheckOption precheckOpt = new GenmodelPrecheckOption();
+    ApplyOption applyOpt = new ApplyOption();
+
+    if (precheckRequested) {
+      folderOpt.setRequired(false);
+      userOpt.setRequired(false);
+      reactionOpt.setRequired(false);
+      reactionsOpt.setRequired(false);
+    }
+
+    Options options = new Options();
+    options.addOption(metamodelOpt);
+    options.addOption(folderOpt);
+    options.addOption(userOpt);
+    options.addOption(reactionOpt);
+    options.addOption(reactionsOpt);
+    options.addOption(precheckOpt);
+    options.addOption(applyOpt);
+
+    CommandLine line = parser.parse(options, args);
+    return new ParsedCli(
+        line, metamodelOpt, folderOpt, userOpt, reactionOpt, reactionsOpt, precheckOpt, applyOpt);
+  }
+
+  /**
+   * Validates mutually exclusive reaction options.
+   *
+   * @param line the parsed command line
+   * @throws ParseException if both reaction options are provided
+   */
+  private void validateReactionOptions(CommandLine line) throws ParseException {
+    if (line.hasOption("r") && line.hasOption("rs")) {
+      throw new ParseException(
+          "Options -r/--reaction and -rs/--reactions-source are mutually exclusive.");
+    }
+  }
+
+  /**
+   * Prepares CLI options in the required order.
+   *
+   * @param line the parsed command line
+   * @param configuration the Vitruv configuration
+   * @param parsedCli the parsed CLI wrapper
+   */
+  private void prepareOptionsInOrder(
+      CommandLine line, VitruvConfiguration configuration, ParsedCli parsedCli) {
+
+    prepareOptionIfPresent(line, "m", parsedCli.metamodelOpt(), configuration);
+    prepareOptionIfPresent(line, "pg", parsedCli.precheckOpt(), configuration);
+    prepareOptionIfPresent(line, "f", parsedCli.folderOpt(), configuration);
+    prepareOptionIfPresent(line, "u", parsedCli.userOpt(), configuration);
+    prepareOptionIfPresent(line, "r", parsedCli.reactionOpt(), configuration);
+    prepareOptionIfPresent(line, "rs", parsedCli.reactionsOpt(), configuration);
+  }
+
+  /**
+   * Prepares a single option if it is present on the command line.
+   *
+   * @param line the parsed command line
+   * @param opt the short option name
+   * @param option the CLI option instance
+   * @param configuration the Vitruv configuration
+   */
+  private void prepareOptionIfPresent(
+      CommandLine line, String opt, VitruvCLIOption option, VitruvConfiguration configuration) {
+    if (!line.hasOption(opt)) {
+      return;
+    }
+
+    System.out.println(
+        "Preparing option " + option.getLongOpt() + " with value " + formatOptionValues(line, opt));
+    option.prepare(line, configuration);
+  }
+
+  /**
+   * Returns whether execution should stop after precheck.
+   *
+   * @param line the parsed command line
+   * @return true if only precheck should run
+   */
+  private boolean shouldStopAfterPrecheck(CommandLine line) {
+    return line.hasOption("pg") && !line.hasOption("f");
+  }
+
+  /**
+   * Runs the preBuild phase for all present options.
+   *
+   * @param line the parsed command line
+   * @param builder the virtual model builder
+   * @param configuration the Vitruv configuration
+   */
+  private void runPreBuild(
+      CommandLine line, VirtualModelBuilder builder, VitruvConfiguration configuration) {
+    for (Option option : line.getOptions()) {
+      System.out.println(
+          "Preprocessing option " + option.getLongOpt() + " with value " + option.getValuesList());
+      ((VitruvCLIOption) option).preBuild(line, builder, configuration);
+    }
+  }
+
+  /**
+   * Runs the postBuild phase for all present options.
+   *
+   * @param line the parsed command line
+   * @param builder the virtual model builder
+   * @param configuration the Vitruv configuration
+   */
+  private void runPostBuild(
+      CommandLine line, VirtualModelBuilder builder, VitruvConfiguration configuration) {
+    for (Option option : line.getOptions()) {
+      System.out.println(
+          "Postprocessing option " + option.getLongOpt() + " with value " + option.getValuesList());
+      ((VitruvCLIOption) option).postBuild(line, builder, configuration);
+    }
+  }
+
+  /**
+   * Executes the Maven build in the generated project directory.
+   *
+   * @param configuration the Vitruv configuration
+   * @throws IOException if the process cannot be started
+   * @throws InterruptedException if the process is interrupted
+   */
+  private void runMavenBuild(VitruvConfiguration configuration)
+      throws IOException, InterruptedException {
+    ProcessBuilder pbuilder = createMavenProcessBuilder(configuration);
+    Process process = pbuilder.start();
+
+    try (BufferedReader reader =
+        new BufferedReader(new InputStreamReader(process.getInputStream()))) {
+      String line;
+      while ((line = reader.readLine()) != null) {
+        System.out.println(line);
+      }
+    }
+
+    process.waitFor();
+    if (process.exitValue() != 0) {
+      throw new Error(
+          "Error occurred during maven build! Please fix your setup accordingly! Exit code: "
+              + process.exitValue());
+    }
+  }
+
+  /**
+   * Creates the ProcessBuilder for the Maven build command.
+   *
+   * @param configuration the Vitruv configuration
+   * @return the configured ProcessBuilder
+   */
+  private ProcessBuilder createMavenProcessBuilder(VitruvConfiguration configuration) {
+    String command = "mvn clean verify";
+    ProcessBuilder pbuilder;
+
+    if (System.getProperty("os.name").toLowerCase().contains("win")) {
+      pbuilder = new ProcessBuilder("cmd.exe", "/c", command);
+    } else {
+      pbuilder = new ProcessBuilder("bash", "-c", command);
+    }
+
+    pbuilder.directory(
+        new File(configuration.getLocalPath().toFile().getAbsoluteFile().toString().trim()));
+    return pbuilder;
+  }
+
+  /**
+   * Formats option values for logging.
+   *
+   * @param line the parsed command line
+   * @param opt the short option name
+   * @return the formatted option values
+   */
+  private String formatOptionValues(CommandLine line, String opt) {
+    String[] values = line.getOptionValues(opt);
+    return values == null ? "[]" : Arrays.toString(values);
+  }
+
+  /** Holds parsed command line data together with the created option instances. */
+  private record ParsedCli(
+      CommandLine line,
+      MetamodelOption metamodelOpt,
+      FolderOption folderOpt,
+      UserInteractorOption userOpt,
+      ReactionOption reactionOpt,
+      ReactionsOption reactionsOpt,
+      GenmodelPrecheckOption precheckOpt,
+      ApplyOption applyOpt) {}
 
   private static boolean hasArg(String[] args, String needle) {
     for (String a : args) {
