@@ -6,11 +6,13 @@ import java.io.File;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
 
 import org.eclipse.emf.codegen.ecore.genmodel.GenModel;
-import org.eclipse.emf.codegen.ecore.genmodel.GenModelPackage;
 import org.eclipse.emf.codegen.ecore.genmodel.GenModelFactory;
+import org.eclipse.emf.codegen.ecore.genmodel.GenModelPackage;
 import org.eclipse.emf.codegen.ecore.genmodel.GenPackage;
 import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.resource.Resource;
@@ -53,7 +55,7 @@ class GenmodelPrecheckTest {
     GenmodelPrecheck svc = new GenmodelPrecheck();
 
     String xml =
-            """
+        """
             <?xml version="1.0" encoding="UTF-8"?>
             <root a="1" b="2" c="3"></root>
             """;
@@ -70,7 +72,7 @@ class GenmodelPrecheckTest {
     GenmodelPrecheck svc = new GenmodelPrecheck();
 
     String xml =
-            """
+        """
             <?xml version="1.0" encoding="UTF-8"?>
             <genmodel:GenModel xmi:version="2.0"
               xmlns:xmi="http://www.omg.org/XMI"
@@ -90,19 +92,32 @@ class GenmodelPrecheckTest {
     assertFalse(out.contains("complianceLevel="), out);
   }
 
-
   @Test
-  void enforceCreationIcons_whenTrue_setsFalse_andAddsIssue() {
+  void enforceCreationIcons_whenTrue_apply_setsFalse_andAddsIssue() {
     GenmodelPrecheck svc = new GenmodelPrecheck();
     GenModel gm = GenModelFactory.eINSTANCE.createGenModel();
     gm.setCreationIcons(true);
 
     List<GenmodelPrecheck.Issue> issues = new ArrayList<>();
-    svc.enforceCreationIcons(new File("x.genmodel"), gm, issues);
+    svc.enforceCreationIcons(new File("x.genmodel"), gm, issues, true);
 
     assertFalse(gm.isCreationIcons());
     assertEquals(1, issues.size());
     assertTrue(issues.get(0).message.contains("creationIcons=false"));
+  }
+
+  @Test
+  void enforceCreationIcons_whenTrue_inspect_onlyReports() {
+    GenmodelPrecheck svc = new GenmodelPrecheck();
+    GenModel gm = GenModelFactory.eINSTANCE.createGenModel();
+    gm.setCreationIcons(true);
+
+    List<GenmodelPrecheck.Issue> issues = new ArrayList<>();
+    svc.enforceCreationIcons(new File("x.genmodel"), gm, issues, false);
+
+    assertTrue(gm.isCreationIcons());
+    assertEquals(1, issues.size());
+    assertTrue(issues.get(0).message.contains("Would set creationIcons=false"));
   }
 
   @Test
@@ -112,14 +127,14 @@ class GenmodelPrecheckTest {
     gm.setCreationIcons(false);
 
     List<GenmodelPrecheck.Issue> issues = new ArrayList<>();
-    svc.enforceCreationIcons(new File("x.genmodel"), gm, issues);
+    svc.enforceCreationIcons(new File("x.genmodel"), gm, issues, true);
 
     assertFalse(gm.isCreationIcons());
     assertEquals(0, issues.size());
   }
 
   @Test
-  void enforceForeignModel_whenMissing_addsDefaultEntry_andIssue() {
+  void enforceForeignModel_whenMissing_apply_addsDefaultEntry_andIssue() {
     GenmodelPrecheck svc = new GenmodelPrecheck();
     GenModel gm = GenModelFactory.eINSTANCE.createGenModel();
     gm.getForeignModel().clear();
@@ -127,11 +142,28 @@ class GenmodelPrecheckTest {
     File f = new File("my.genmodel");
     List<GenmodelPrecheck.Issue> issues = new ArrayList<>();
 
-    svc.enforceForeignModel(f, gm, issues);
+    svc.enforceForeignModel(f, gm, issues, true);
 
     assertEquals(List.of("my.ecore"), gm.getForeignModel());
     assertEquals(1, issues.size());
     assertTrue(issues.get(0).message.contains("Added missing foreignModel"));
+    assertTrue(issues.get(0).message.contains("my.ecore"));
+  }
+
+  @Test
+  void enforceForeignModel_whenMissing_inspect_onlyReports() {
+    GenmodelPrecheck svc = new GenmodelPrecheck();
+    GenModel gm = GenModelFactory.eINSTANCE.createGenModel();
+    gm.getForeignModel().clear();
+
+    File f = new File("my.genmodel");
+    List<GenmodelPrecheck.Issue> issues = new ArrayList<>();
+
+    svc.enforceForeignModel(f, gm, issues, false);
+
+    assertTrue(gm.getForeignModel().isEmpty());
+    assertEquals(1, issues.size());
+    assertTrue(issues.get(0).message.contains("Would add missing foreignModel"));
     assertTrue(issues.get(0).message.contains("my.ecore"));
   }
 
@@ -143,15 +175,14 @@ class GenmodelPrecheckTest {
     gm.getForeignModel().add("model.ecore");
 
     List<GenmodelPrecheck.Issue> issues = new ArrayList<>();
-    svc.enforceForeignModel(new File("x.genmodel"), gm, issues);
+    svc.enforceForeignModel(new File("x.genmodel"), gm, issues, true);
 
     assertEquals(List.of("model.ecore"), gm.getForeignModel());
     assertEquals(0, issues.size());
   }
 
-
   @Test
-  void enforceBasePackage_whenEmpty_sets_andAddsIssue() {
+  void enforceBasePackage_whenEmpty_apply_sets_andAddsIssue() {
     GenmodelPrecheck svc = new GenmodelPrecheck();
 
     GenModel gm = GenModelFactory.eINSTANCE.createGenModel();
@@ -160,7 +191,8 @@ class GenmodelPrecheckTest {
     gm.getGenPackages().add(gp);
 
     List<GenmodelPrecheck.Issue> issues = new ArrayList<>();
-    svc.enforceBasePackageEqualsModelPluginId(new File("x.genmodel"), gm, "my.plugin", issues);
+    svc.enforceBasePackageEqualsModelPluginId(
+        new File("x.genmodel"), gm, "my.plugin", issues, true);
 
     assertEquals("my.plugin", gp.getBasePackage());
     assertEquals(1, issues.size());
@@ -168,7 +200,25 @@ class GenmodelPrecheckTest {
   }
 
   @Test
-  void enforceBasePackage_whenMismatch_overwrites_andAddsIssue() {
+  void enforceBasePackage_whenEmpty_inspect_onlyReports() {
+    GenmodelPrecheck svc = new GenmodelPrecheck();
+
+    GenModel gm = GenModelFactory.eINSTANCE.createGenModel();
+    GenPackage gp = GenModelFactory.eINSTANCE.createGenPackage();
+    gp.setBasePackage("");
+    gm.getGenPackages().add(gp);
+
+    List<GenmodelPrecheck.Issue> issues = new ArrayList<>();
+    svc.enforceBasePackageEqualsModelPluginId(
+        new File("x.genmodel"), gm, "my.plugin", issues, false);
+
+    assertTrue(gp.getBasePackage() == null || gp.getBasePackage().isEmpty());
+    assertEquals(1, issues.size());
+    assertTrue(issues.get(0).message.contains("Would set basePackage"));
+  }
+
+  @Test
+  void enforceBasePackage_whenMismatch_apply_overwrites_andAddsIssue() {
     GenmodelPrecheck svc = new GenmodelPrecheck();
 
     GenModel gm = GenModelFactory.eINSTANCE.createGenModel();
@@ -177,11 +227,30 @@ class GenmodelPrecheckTest {
     gm.getGenPackages().add(gp);
 
     List<GenmodelPrecheck.Issue> issues = new ArrayList<>();
-    svc.enforceBasePackageEqualsModelPluginId(new File("x.genmodel"), gm, "my.plugin", issues);
+    svc.enforceBasePackageEqualsModelPluginId(
+        new File("x.genmodel"), gm, "my.plugin", issues, true);
 
     assertEquals("my.plugin", gp.getBasePackage());
     assertEquals(1, issues.size());
     assertTrue(issues.get(0).message.contains("Changed basePackage"));
+  }
+
+  @Test
+  void enforceBasePackage_whenMismatch_inspect_onlyReports() {
+    GenmodelPrecheck svc = new GenmodelPrecheck();
+
+    GenModel gm = GenModelFactory.eINSTANCE.createGenModel();
+    GenPackage gp = GenModelFactory.eINSTANCE.createGenPackage();
+    gp.setBasePackage("wrong");
+    gm.getGenPackages().add(gp);
+
+    List<GenmodelPrecheck.Issue> issues = new ArrayList<>();
+    svc.enforceBasePackageEqualsModelPluginId(
+        new File("x.genmodel"), gm, "my.plugin", issues, false);
+
+    assertEquals("wrong", gp.getBasePackage());
+    assertEquals(1, issues.size());
+    assertTrue(issues.get(0).message.contains("Would change basePackage"));
   }
 
   @Test
@@ -194,7 +263,8 @@ class GenmodelPrecheckTest {
     gm.getGenPackages().add(gp);
 
     List<GenmodelPrecheck.Issue> issues = new ArrayList<>();
-    svc.enforceBasePackageEqualsModelPluginId(new File("x.genmodel"), gm, "my.plugin", issues);
+    svc.enforceBasePackageEqualsModelPluginId(
+        new File("x.genmodel"), gm, "my.plugin", issues, true);
 
     assertEquals("my.plugin", gp.getBasePackage());
     assertEquals(0, issues.size());
@@ -208,21 +278,21 @@ class GenmodelPrecheckTest {
     gm.setModelDirectory("/p/target/generated-sources/ecore");
 
     List<GenmodelPrecheck.Issue> issues = new ArrayList<>();
-    svc.enforceModelDirectory(new File("x.genmodel"), gm, "p", issues);
+    svc.enforceModelDirectory(new File("x.genmodel"), gm, "p", issues, true);
 
     assertEquals("/p/target/generated-sources/ecore", svc.normalize(gm.getModelDirectory()));
     assertEquals(0, issues.size());
   }
 
   @Test
-  void enforceModelDirectory_whenMismatch_overwrites_andAddsOneIssue() {
+  void enforceModelDirectory_whenMismatch_apply_overwrites_andAddsOneIssue() {
     GenmodelPrecheck svc = new GenmodelPrecheck();
 
     GenModel gm = GenModelFactory.eINSTANCE.createGenModel();
     gm.setModelDirectory("/wrong/dir");
 
     List<GenmodelPrecheck.Issue> issues = new ArrayList<>();
-    svc.enforceModelDirectory(new File("x.genmodel"), gm, "p", issues);
+    svc.enforceModelDirectory(new File("x.genmodel"), gm, "p", issues, true);
 
     assertEquals("/p/target/generated-sources/ecore", svc.normalize(gm.getModelDirectory()));
     assertEquals(1, issues.size());
@@ -230,18 +300,104 @@ class GenmodelPrecheckTest {
   }
 
   @Test
-  void enforceModelDirectory_whenBlank_setsExpected_andAddsOneIssue() {
+  void enforceModelDirectory_whenMismatch_inspect_onlyReports() {
+    GenmodelPrecheck svc = new GenmodelPrecheck();
+
+    GenModel gm = GenModelFactory.eINSTANCE.createGenModel();
+    gm.setModelDirectory("/wrong/dir");
+
+    List<GenmodelPrecheck.Issue> issues = new ArrayList<>();
+    svc.enforceModelDirectory(new File("x.genmodel"), gm, "p", issues, false);
+
+    assertEquals("/wrong/dir", svc.normalize(gm.getModelDirectory()));
+    assertEquals(1, issues.size());
+    assertTrue(issues.get(0).message.contains("Would change modelDirectory"));
+  }
+
+  @Test
+  void enforceModelDirectory_whenBlank_apply_setsExpected_andAddsOneIssue() {
     GenmodelPrecheck svc = new GenmodelPrecheck();
 
     GenModel gm = GenModelFactory.eINSTANCE.createGenModel();
     gm.setModelDirectory("   ");
 
     List<GenmodelPrecheck.Issue> issues = new ArrayList<>();
-    svc.enforceModelDirectory(new File("x.genmodel"), gm, "p", issues);
+    svc.enforceModelDirectory(new File("x.genmodel"), gm, "p", issues, true);
 
     assertEquals("/p/target/generated-sources/ecore", svc.normalize(gm.getModelDirectory()));
-    assertEquals(1, issues.size(), "Blank should produce exactly 1 issue (Set...).");
+    assertEquals(1, issues.size());
     assertTrue(issues.get(0).message.contains("Set modelDirectory"));
+  }
+
+  @Test
+  void enforceModelDirectory_whenBlank_inspect_onlyReports() {
+    GenmodelPrecheck svc = new GenmodelPrecheck();
+
+    GenModel gm = GenModelFactory.eINSTANCE.createGenModel();
+    gm.setModelDirectory("   ");
+
+    List<GenmodelPrecheck.Issue> issues = new ArrayList<>();
+    svc.enforceModelDirectory(new File("x.genmodel"), gm, "p", issues, false);
+
+    assertEquals("", svc.safeTrim(gm.getModelDirectory()));
+    assertEquals(1, issues.size());
+    assertTrue(issues.get(0).message.contains("Would set modelDirectory"));
+  }
+
+  @Test
+  void inspect_withAllScenarios_reportsButDoesNotPersist() throws Exception {
+    writeEcore(tempDir.resolve("model.ecore"));
+
+    File genmodelFile = tempDir.resolve("all.genmodel").toFile();
+
+    String xml =
+        """
+            <?xml version="1.0" encoding="UTF-8"?>
+            <genmodel:GenModel xmi:version="2.0"
+              xmlns:xmi="http://www.omg.org/XMI"
+              xmlns:genmodel="http://www.eclipse.org/emf/2002/GenModel"
+              xmlns:ecore="http://www.eclipse.org/emf/2002/Ecore"
+              modelPluginID="p"
+              modelDirectory="/WRONG/dir"
+              creationIcons="true"
+              complianceLevel="1.4"
+              editDirectory="/p.edit/src"
+              editorDirectory="/p.editor/src"
+              testsDirectory="/p.tests/src"
+              editPluginID="p.edit"
+              editorPluginID="p.editor"
+              testsPluginID="p.tests">
+              <genPackages prefix="Model" basePackage="WRONG.BASE" ecorePackage="model.ecore#/"/>
+            </genmodel:GenModel>
+            """;
+
+    Files.writeString(genmodelFile.toPath(), xml, StandardCharsets.UTF_8);
+
+    GenmodelPrecheck svc = new GenmodelPrecheck();
+    List<GenmodelPrecheck.Issue> issues = svc.inspect(genmodelFile);
+
+    String unchangedXml = Files.readString(genmodelFile.toPath(), StandardCharsets.UTF_8);
+    assertTrue(unchangedXml.contains("complianceLevel="), unchangedXml);
+    assertTrue(unchangedXml.contains("editDirectory="), unchangedXml);
+    assertTrue(unchangedXml.contains("editorDirectory="), unchangedXml);
+    assertTrue(unchangedXml.contains("testsDirectory="), unchangedXml);
+    assertTrue(unchangedXml.contains("editPluginID="), unchangedXml);
+    assertTrue(unchangedXml.contains("editorPluginID="), unchangedXml);
+    assertTrue(unchangedXml.contains("testsPluginID="), unchangedXml);
+
+    GenModel reloaded = loadGenModelIgnoringUnknownAttrs(genmodelFile.toPath(), svc);
+
+    assertTrue(reloaded.isCreationIcons());
+    assertTrue(reloaded.getForeignModel().isEmpty());
+    assertEquals("WRONG.BASE", reloaded.getGenPackages().get(0).getBasePackage());
+    assertEquals("/WRONG/dir", reloaded.getModelDirectory());
+
+    String dump = issues.toString();
+    assertTrue(dump.contains("Would remove attributes"), dump);
+    assertTrue(dump.contains("Would change basePackage"), dump);
+    assertTrue(dump.contains("Would change modelDirectory"), dump);
+    assertTrue(dump.contains("Would add missing foreignModel"), dump);
+    assertTrue(dump.contains("Would set creationIcons=false"), dump);
   }
 
   @Test
@@ -251,7 +407,7 @@ class GenmodelPrecheckTest {
     File genmodelFile = tempDir.resolve("all.genmodel").toFile();
 
     String xml =
-            """
+        """
             <?xml version="1.0" encoding="UTF-8"?>
             <genmodel:GenModel xmi:version="2.0"
               xmlns:xmi="http://www.omg.org/XMI"
@@ -302,7 +458,7 @@ class GenmodelPrecheckTest {
 
   private static void writeEcore(Path p) throws Exception {
     String ecore =
-            """
+        """
             <?xml version="1.0" encoding="UTF-8"?>
             <ecore:EPackage
               xmlns:xmi="http://www.omg.org/XMI"
@@ -319,12 +475,33 @@ class GenmodelPrecheckTest {
     ResourceSet rs = new ResourceSetImpl();
     rs.getPackageRegistry().put(GenModelPackage.eNS_URI, GenModelPackage.eINSTANCE);
     rs.getResourceFactoryRegistry()
-            .getExtensionToFactoryMap()
-            .put("genmodel", new XMIResourceFactoryImpl());
+        .getExtensionToFactoryMap()
+        .put("genmodel", new XMIResourceFactoryImpl());
 
     URI uri = URI.createFileURI(genmodelPath.toFile().getAbsolutePath());
     Resource r = rs.getResource(uri, true);
     r.load(null);
     return (GenModel) r.getContents().get(0);
+  }
+
+  private static GenModel loadGenModelIgnoringUnknownAttrs(Path genmodelPath, GenmodelPrecheck svc)
+      throws Exception {
+    String xml = Files.readString(genmodelPath, StandardCharsets.UTF_8);
+    String stripped =
+        svc.stripAttributesWithStax(
+            xml,
+            Set.of(
+                "complianceLevel",
+                "compliance",
+                "editDirectory",
+                "editorDirectory",
+                "testsDirectory",
+                "editPluginID",
+                "editorPluginID",
+                "testsPluginID"));
+
+    Path temp = Files.createTempFile("genmodel-test-", ".genmodel");
+    Files.writeString(temp, stripped, StandardCharsets.UTF_8);
+    return loadGenModel(temp);
   }
 }
