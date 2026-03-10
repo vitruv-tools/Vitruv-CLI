@@ -31,3 +31,4 @@ dependency-reduced-pom.xml
 META-INF
 build.properties
 plugin.properties
+/.idea/
