@@ -15,25 +15,42 @@ public class ApplyOption extends VitruvCLIOption {
     this.setArgs(0);
   }
 
-  /** No-op implementation. */
+  /**
+   * No-op implementation.
+   * <p>
+   * This option is a flag that modifies behavior of other options (like GenmodelPrecheckOption).
+   * It does not require any preparation logic of its own.
+   */
   @Override
   public void prepare(CommandLine cmd, VitruvConfiguration configuration) {}
 
-  /** No-op implementation. */
+  /**
+   * No-op implementation.
+   * <p>
+   * This option does not modify the builder before virtual model construction.
+   */
   @Override
   public VirtualModelBuilder preBuild(
       CommandLine cmd, VirtualModelBuilder builder, VitruvConfiguration configuration) {
     return builder;
   }
 
-  /** No-op implementation. */
+  /**
+   * No-op implementation.
+   * <p>
+   * This option does not modify the builder during internal application phase.
+   */
   @Override
   public VirtualModelBuilder applyInternal(
       CommandLine cmd, VirtualModelBuilder builder, VitruvConfiguration configuration) {
     return builder;
   }
 
-  /** No-op implementation. */
+  /**
+   * No-op implementation.
+   * <p>
+   * This option does not modify the builder after virtual model construction.
+   */
   @Override
   public VirtualModelBuilder postBuild(
       CommandLine cmd, VirtualModelBuilder builder, VitruvConfiguration configuration) {
