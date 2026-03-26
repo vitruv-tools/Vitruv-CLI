@@ -15,6 +15,11 @@ public class GenmodelPrecheckOption extends VitruvCLIOption {
 
   private static final String OPT = "pg";
   private static final String APPLY = "apply";
+  private static final String STATUS_PREFIX = "GENMODEL_PRECHECK_STATUS: ";
+  private static final String STATUS_CLEAN = "CLEAN";
+  private static final String STATUS_ISSUES_FOUND = "ISSUES_FOUND";
+  private static final String STATUS_FIXES_APPLIED = "FIXES_APPLIED";
+  private static final String STATUS_ABORTED = "ABORTED";
 
   /** Constructs the genmodel precheck option. */
   public GenmodelPrecheckOption() {
@@ -59,14 +64,43 @@ public class GenmodelPrecheckOption extends VitruvCLIOption {
 
     if (previewIssues.isEmpty()) {
       System.out.println("No problems found in the provided genmodel files.");
+      printStatus(STATUS_CLEAN);
       return;
     }
 
-    printPreviewIssues(previewIssues);
-    handleConfirmation(applyImmediately);
+    System.out.println("We found some problems in your genmodel files:");
+    for (GenmodelPrecheck.Issue issue : previewIssues) {
+      System.out.println("- " + issue);
+    }
+    printStatus(STATUS_ISSUES_FOUND);
+
+    if (!applyImmediately && !askForFixConfirmation()) {
+      printStatus(STATUS_ABORTED);
+      throw new IllegalArgumentException(
+          "Genmodel precheck found issues and fixes were declined. Execution stopped.");
+    }
 
     List<GenmodelPrecheck.Issue> appliedIssues = applyFixes(locations, precheck);
-    printAppliedIssues(appliedIssues);
+
+    if (appliedIssues.isEmpty()) {
+      System.out.println("No changes were necessary.");
+    } else {
+      System.out.println("Applied genmodel changes:");
+      for (GenmodelPrecheck.Issue issue : appliedIssues) {
+        System.out.println("- " + issue);
+      }
+    }
+
+    printStatus(STATUS_FIXES_APPLIED);
+  }
+
+  /**
+   * Prints a machine-readable precheck status marker to stdout.
+   *
+   * @param status the status value
+   */
+  private void printStatus(String status) {
+    System.out.println(STATUS_PREFIX + status);
   }
 
   /**
