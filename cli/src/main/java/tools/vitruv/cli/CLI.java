@@ -13,6 +13,7 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 
+import lombok.extern.slf4j.Slf4j;
 import tools.vitruv.cli.options.ApplyOption;
 import tools.vitruv.cli.configuration.VitruvConfiguration;
 import tools.vitruv.cli.exceptions.MissingModelException;
@@ -30,6 +31,7 @@ import tools.vitruv.framework.vsum.VirtualModelBuilder;
  * parses the command line arguments and triggers the generation of the necessary files and the
  * build of the project.
  */
+@Slf4j
 public class CLI {
 
   /**
@@ -71,15 +73,15 @@ public class CLI {
       runMavenBuild(configuration);
       runPostBuild(line, builder, configuration);
 
-      System.out.println(builder.buildAndInitialize());
+      log.info(builder.buildAndInitialize().toString());
     } catch (ParseException exp) {
-      System.out.println("Parsing failed.  Reason: " + exp.getMessage());
+      log.error("Parsing failed.  Reason: " + exp.getMessage());
     } catch (IllegalArgumentException exp) {
-      System.out.println("Invalid CLI argument or option.  Reason: " + exp.getMessage());
+      log.error("Invalid CLI argument or option.  Reason: " + exp.getMessage());
     } catch (IOException | InterruptedException e) {
-      System.out.println("Invoking maven to build the project failed.  Reason: " + e.getMessage());
+      log.error("Invoking maven to build the project failed.  Reason: " + e.getMessage());
     } catch (MissingModelException e) {
-      System.out.println("Generating files failed (missing models).  Reason: " + e.getMessage());
+      log.error("Generating files failed (missing models).  Reason: " + e.getMessage());
     }
   }
 
@@ -168,7 +170,7 @@ public class CLI {
       return;
     }
 
-    System.out.println(
+    log.info(
         "Preparing option " + option.getLongOpt() + " with value " + formatOptionValues(line, opt));
     option.prepare(line, configuration);
   }
@@ -193,7 +195,7 @@ public class CLI {
   private void runPreBuild(
       CommandLine line, VirtualModelBuilder builder, VitruvConfiguration configuration) {
     for (Option option : line.getOptions()) {
-      System.out.println(
+      log.info(
           "Preprocessing option " + option.getLongOpt() + " with value " + option.getValuesList());
       ((VitruvCLIOption) option).preBuild(line, builder, configuration);
     }
@@ -209,7 +211,7 @@ public class CLI {
   private void runPostBuild(
       CommandLine line, VirtualModelBuilder builder, VitruvConfiguration configuration) {
     for (Option option : line.getOptions()) {
-      System.out.println(
+      log.info(
           "Postprocessing option " + option.getLongOpt() + " with value " + option.getValuesList());
       ((VitruvCLIOption) option).postBuild(line, builder, configuration);
     }
@@ -231,7 +233,7 @@ public class CLI {
         new BufferedReader(new InputStreamReader(process.getInputStream()))) {
       String line;
       while ((line = reader.readLine()) != null) {
-        System.out.println(line);
+        log.info(line);
       }
     }
 
@@ -302,60 +304,60 @@ public class CLI {
     generateFromTemplate.generateRootPom(
         new File((configuration.getLocalPath() + "/pom.xml").trim()),
         configuration.getPackageName());
-    System.out.println("Generating root pom");
+    log.info("Generating root pom");
 
     generateFromTemplate.generateConsistencyPom(
         new File((configuration.getLocalPath() + "/consistency/pom.xml").trim()),
         configuration.getPackageName());
-    System.out.println("Generating consistency pom");
+    log.info("Generating consistency pom");
 
     generateFromTemplate.generateModelPom(
         new File((configuration.getLocalPath() + "/model/pom.xml").trim()),
         configuration.getPackageName());
-    System.out.println("Generating model pom");
+    log.info("Generating model pom");
 
     generateFromTemplate.generateVsumPom(
         new File((configuration.getLocalPath() + "/vsum/pom.xml").trim()),
         configuration.getPackageName());
-    System.out.println("Generating vsum pom");
+    log.info("Generating vsum pom");
 
     generateFromTemplate.generateP2WrappersPom(
         new File((configuration.getLocalPath() + "/p2wrappers/pom.xml").trim()),
         configuration.getPackageName());
-    System.out.println("Generating p2wrappers pom");
+    log.info("Generating p2wrappers pom");
 
     generateFromTemplate.generateJavaUtilsPom(
         new File((configuration.getLocalPath() + "/p2wrappers/javautils/pom.xml").trim()),
         configuration.getPackageName());
-    System.out.println("Generating p2wrappers javautils pom");
+    log.info("Generating p2wrappers javautils pom");
 
     generateFromTemplate.generateXAnnotationsPom(
         new File(
             (configuration.getLocalPath() + "/p2wrappers/activextendannotations/pom.xml").trim()),
         configuration.getPackageName());
-    System.out.println("Generating p2wrappers xannotations pom");
+    log.info("Generating p2wrappers xannotations pom");
 
     generateFromTemplate.generateEMFUtilsPom(
         new File((configuration.getLocalPath() + "/p2wrappers/emfutils/pom.xml").trim()),
         configuration.getPackageName());
-    System.out.println("Generating p2wrappers emf utils pom");
+    log.info("Generating p2wrappers emf utils pom");
 
     generateFromTemplate.generateVsumExample(
         new File((configuration.getLocalPath() + "/vsum/src/main/java/VSUMExample.java").trim()),
         configuration.getPackageName(),
         configuration.getModelNames());
-    System.out.println("Generating vsum example java class");
+    log.info("Generating vsum example java class");
 
     generateFromTemplate.generateVsumTest(
         new File(
             (configuration.getLocalPath() + "/vsum/src/test/java/VSUMExampleTest.java").trim()),
         configuration.getPackageName());
-    System.out.println("Generating vsum example test java class");
+    log.info("Generating vsum example test java class");
 
     generateFromTemplate.generateProjectFile(
         new File((configuration.getLocalPath() + "/model/.project").trim()),
         configuration.getPackageName());
-    System.out.println("Generating project file");
+    log.info("Generating project file");
     File workflow =
         new File((configuration.getLocalPath() + "/model/workflow/generate.mwe2").trim());
     configuration.setWorkflow(workflow);

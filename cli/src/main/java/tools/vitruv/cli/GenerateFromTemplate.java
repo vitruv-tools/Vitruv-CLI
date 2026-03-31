@@ -8,24 +8,24 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Logger;
 
 import freemarker.template.Configuration;
 import freemarker.template.Template;
 import freemarker.template.TemplateException;
 import freemarker.template.TemplateExceptionHandler;
+import lombok.extern.slf4j.Slf4j;
 import tools.vitruv.cli.configuration.MetamodelLocation;
 import tools.vitruv.cli.configuration.VitruvConfiguration;
 import tools.vitruv.cli.exceptions.MissingModelException;
 import tools.vitruv.cli.options.FileUtils;
 
 /** This class is responsible for generating files from templates. */
+@Slf4j
 public class GenerateFromTemplate {
   /** Constructor. */
   public GenerateFromTemplate() {
   }
 
-  private static final Logger logger = Logger.getLogger(GenerateFromTemplate.class.getName());
   private static final String PACKAGE_NAME = "packageName";
 
   private Configuration getConfiguration() {
@@ -45,7 +45,7 @@ public class GenerateFromTemplate {
     try (Writer fileWriter = new FileWriter(filePath.getAbsolutePath(), false)) {
       template.process(data, fileWriter);
       fileWriter.flush();
-      logger.info("writing to " + filePath.getAbsolutePath());
+      log.info("writing to " + filePath.getAbsolutePath());
     } catch (TemplateException e) {
       e.printStackTrace();
     }

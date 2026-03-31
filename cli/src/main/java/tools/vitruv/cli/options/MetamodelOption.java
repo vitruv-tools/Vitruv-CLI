@@ -18,10 +18,15 @@ import org.eclipse.emf.ecore.resource.ResourceSet;
 import org.eclipse.emf.ecore.resource.impl.ResourceSetImpl;
 import org.eclipse.emf.ecore.xmi.impl.XMIResourceFactoryImpl;
 
+import lombok.extern.slf4j.Slf4j;
 import tools.vitruv.cli.configuration.MetamodelLocation;
 import tools.vitruv.cli.configuration.VitruvConfiguration;
 import tools.vitruv.framework.vsum.VirtualModelBuilder;
 
+/**
+ * CLI option handler for configuring and processing metamodels in the Vitruv framework.
+ */
+@Slf4j
 public class MetamodelOption extends VitruvCLIOption {
   // resource/tools.vitruv.methodologisttemplate.model/src/main/ecore/model.genmodel
   public static final String SUBFOLDER = "/model/src/main/ecore/";
@@ -75,12 +80,12 @@ public class MetamodelOption extends VitruvCLIOption {
     try {
       List<String> alines = Files.readAllLines(configuration.getWorkflow().toPath());
       List<String> lines = new ArrayList<>(alines);
-      System.out.println(configuration.getWorkflow().toPath());
+      log.info(configuration.getWorkflow().toPath().toString());
       for (int i = 0; i < lines.size(); i++) {
         if (lines.get(i).contains("#")) {
-          System.out.println(lines);
+          log.info(lines.get(i));
           lines.set(i, lines.get(i).replace("#", createSpecialString(count, "#")));
-          System.out.println(lines);
+          log.info(lines.get(i));
           Files.write(
               configuration.getWorkflow().toPath(), lines, StandardOpenOption.TRUNCATE_EXISTING);
           return;
