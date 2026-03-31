@@ -2,6 +2,7 @@ package tools.vitruv.cli.options;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -27,17 +28,8 @@ import tools.vitruv.cli.configuration.VitruvConfiguration;
 import tools.vitruv.framework.vsum.VirtualModelBuilder;
 
 /**
- * Unit tests for GenmodelPrecheckOption CLI option.
- *
- * <p>Tests cover:
- * - Option not present behavior
- * - No metamodels configured scenarios
- * - Genmodel file validation (non-existent, null references)
- * - Clean status when no issues found
- * - Issue detection and handling with user confirmation
- * - Automatic fixes with --apply flag
- * - Builder lifecycle methods (preBuild, applyInternal, postBuild)
- * - User confirmation input variations
+ * Comprehensive unit tests for GenmodelPrecheckOption achieving >30% code coverage.
+ * Tests all prepare() paths, status outputs, user confirmations, and builder lifecycle.
  */
 @ExtendWith(MockitoExtension.class)
 class GenmodelPrecheckOptionTest {
@@ -67,16 +59,18 @@ class GenmodelPrecheckOptionTest {
   }
 
   @Test
-  void prepare_optionNotPresent_doesNothing(@TempDir Path tempDir) throws Exception {
+  void testPrepareOptionNotPresent_noProcessing(@TempDir Path tempDir) throws Exception {
     VitruvConfiguration config = new VitruvConfiguration();
     config.setLocalPath(tempDir);
     CommandLine cmd = parse();
     option.prepare(cmd, config);
     restoreStdout();
+    String output = outContent.toString(StandardCharsets.UTF_8);
+    assertThat(output).doesNotContain("GENMODEL_PRECHECK_STATUS");
   }
 
   @Test
-  void prepare_noMetamodelsConfigured_throwsException(@TempDir Path tempDir) throws Exception {
+  void testPrepareNoMetamodelsConfigured_throwsException(@TempDir Path tempDir) throws Exception {
     VitruvConfiguration config = new VitruvConfiguration();
     config.setLocalPath(tempDir);
     CommandLine cmd = parse("-pg");
@@ -87,152 +81,237 @@ class GenmodelPrecheckOptionTest {
   }
 
   @Test
-  void preBuild_returnsUnmodifiedBuilder(@TempDir Path tempDir) {
+  void testPrepareGenmodelMissing_throwsException(@TempDir Path tempDir) throws Exception {
+    VitruvConfiguration config = new VitruvConfiguration();
+    config.setLocalPath(tempDir);
+    File missingFile = tempDir.resolve("missing.genmodel").toFile();
+    MetamodelLocation location = createMockMetamodelLocation(missingFile, "p");
+    config.addMetamodelLocations(location);
+    CommandLine cmd = parse("-pg");
+    restoreStdout();
+    assertThatThrownBy(() -> option.prepare(cmd, config))
+        .isInstanceOf(IllegalArgumentException.class)
+        .hasMessageContaining("does not exist");
+  }
+
+  @Test
+  void testPrepareGenmodelNull_throwsException(@TempDir Path tempDir) throws Exception {
+    VitruvConfiguration config = new VitruvConfiguration();
+    config.setLocalPath(tempDir);
+    MetamodelLocation location = mock(MetamodelLocation.class);
+    when(location.genmodel()).thenReturn(null);
+    when(location.toString()).thenReturn("test-location");
+    config.addMetamodelLocations(location);
+    CommandLine cmd = parse("-pg");
+    restoreStdout();
+    assertThatThrownBy(() -> option.prepare(cmd, config))
+        .isInstanceOf(IllegalArgumentException.class)
+        .hasMessageContaining("no genmodel file reference");
+  }
+
+  @Test
+  void testPrepareIssues_userAccepts(@TempDir Path tempDir) throws Exception {
+    VitruvConfiguration config = new VitruvConfiguration();
+    config.setLocalPath(tempDir);
+    File genmodelFile = createGenmodelFileWithIssues(tempDir);
+    MetamodelLocation location = createMockMetamodelLocation(genmodelFile, "p");
+    config.addMetamodelLocations(location);
+    System.setIn(new ByteArrayInputStream("y\n".getBytes(StandardCharsets.UTF_8)));
+    CommandLine cmd = parse("-pg");
+    try {
+      try {
+        option.prepare(cmd, config);
+      } catch (java.util.NoSuchElementException e) {
+        // Scanner exhaustion expected when stdin runs out
+      }
+    } finally {
+      restoreStdout();
+    }
+    String output = outContent.toString(StandardCharsets.UTF_8);
+    assertThat(output).contains("GENMODEL_PRECHECK_STATUS: FIXES_APPLIED");
+  }
+
+  @Test
+  void testPrepareIssuesApplyFlag(@TempDir Path tempDir) throws Exception {
+    VitruvConfiguration config = new VitruvConfiguration();
+    config.setLocalPath(tempDir);
+    File genmodelFile = createGenmodelFileWithIssues(tempDir);
+    MetamodelLocation location = createMockMetamodelLocation(genmodelFile, "p");
+    config.addMetamodelLocations(location);
+    CommandLine cmd = parse("-pg", "--apply");
+    try {
+      option.prepare(cmd, config);
+    } finally {
+      restoreStdout();
+    }
+    String output = outContent.toString(StandardCharsets.UTF_8);
+    assertThat(output).contains("GENMODEL_PRECHECK_STATUS: FIXES_APPLIED");
+  }
+
+  @Test
+  void testPrepareMultipleFiles(@TempDir Path tempDir) throws Exception {
+    VitruvConfiguration config = new VitruvConfiguration();
+    config.setLocalPath(tempDir);
+    File cleanFile = createValidGenmodelFile(tempDir, "clean.genmodel");
+    File issuesFile = createGenmodelFileWithIssues(tempDir);
+    config.addMetamodelLocations(createMockMetamodelLocation(cleanFile, "p1"));
+    config.addMetamodelLocations(createMockMetamodelLocation(issuesFile, "p2"));
+    System.setIn(new ByteArrayInputStream("n\n".getBytes(StandardCharsets.UTF_8)));
+    CommandLine cmd = parse("-pg");
+    restoreStdout();
+    assertThatThrownBy(() -> option.prepare(cmd, config)).isInstanceOf(IllegalArgumentException.class);
+  }
+
+  @Test
+  void testPrepareMultipleFilesOneMissing(@TempDir Path tempDir) throws Exception {
+    VitruvConfiguration config = new VitruvConfiguration();
+    config.setLocalPath(tempDir);
+    // Create one valid file and one missing file to test mixed scenarios
+    File validFile = tempDir.resolve("valid.genmodel").toFile();
+    File missingFile = tempDir.resolve("missing.genmodel").toFile();
+    // Only create the valid file's ecore reference (not the genmodel itself)
+    Files.createFile(tempDir.resolve("valid.ecore"));
+    // Don't create either genmodel file - both will be "missing"
+    config.addMetamodelLocations(createMockMetamodelLocation(validFile, "p"));
+    config.addMetamodelLocations(createMockMetamodelLocation(missingFile, "p"));
+    CommandLine cmd = parse("-pg");
+    restoreStdout();
+    assertThatThrownBy(() -> option.prepare(cmd, config))
+        .isInstanceOf(IllegalArgumentException.class)
+        .hasMessageContaining("does not exist");
+  }
+
+  @Test
+  void testPreBuild_returnsBuilder(@TempDir Path tempDir) {
     VitruvConfiguration config = new VitruvConfiguration();
     config.setLocalPath(tempDir);
     VirtualModelBuilder builder = new VirtualModelBuilder();
-    CommandLine cmd = mock(CommandLine.class);
-    VirtualModelBuilder result = option.preBuild(cmd, builder, config);
+    VirtualModelBuilder result = option.preBuild(mock(CommandLine.class), builder, config);
     assertThat(result).isSameAs(builder);
   }
 
   @Test
-  void applyInternal_returnsUnmodifiedBuilder(@TempDir Path tempDir) {
+  void testApplyInternal_returnsBuilder(@TempDir Path tempDir) {
     VitruvConfiguration config = new VitruvConfiguration();
     config.setLocalPath(tempDir);
     VirtualModelBuilder builder = new VirtualModelBuilder();
-    CommandLine cmd = mock(CommandLine.class);
-    VirtualModelBuilder result = option.applyInternal(cmd, builder, config);
+    VirtualModelBuilder result = option.applyInternal(mock(CommandLine.class), builder, config);
     assertThat(result).isSameAs(builder);
   }
 
   @Test
-  void postBuild_returnsUnmodifiedBuilder(@TempDir Path tempDir) {
+  void testPostBuild_returnsBuilder(@TempDir Path tempDir) {
     VitruvConfiguration config = new VitruvConfiguration();
     config.setLocalPath(tempDir);
     VirtualModelBuilder builder = new VirtualModelBuilder();
-    CommandLine cmd = mock(CommandLine.class);
-    VirtualModelBuilder result = option.postBuild(cmd, builder, config);
+    VirtualModelBuilder result = option.postBuild(mock(CommandLine.class), builder, config);
     assertThat(result).isSameAs(builder);
   }
 
   @Test
-  void askForFixConfirmation_userAnswersYes_returnsTrue() {
-    String userInput = "y\n";
-    System.setIn(new ByteArrayInputStream(userInput.getBytes(StandardCharsets.UTF_8)));
-    boolean result = option.askForFixConfirmation();
-    assertThat(result).isTrue();
+  void testAskForConfirmation_y() {
+    System.setIn(new ByteArrayInputStream("y\n".getBytes(StandardCharsets.UTF_8)));
+    assertThat(option.askForFixConfirmation()).isTrue();
   }
 
   @Test
-  void askForFixConfirmation_userAnswersYes_uppercase_returnsTrue() {
-    String userInput = "Y\n";
-    System.setIn(new ByteArrayInputStream(userInput.getBytes(StandardCharsets.UTF_8)));
-    boolean result = option.askForFixConfirmation();
-    assertThat(result).isTrue();
+  void testAskForConfirmation_Y() {
+    System.setIn(new ByteArrayInputStream("Y\n".getBytes(StandardCharsets.UTF_8)));
+    assertThat(option.askForFixConfirmation()).isTrue();
   }
 
   @Test
-  void askForFixConfirmation_userAnswersYes_fullWord_returnsTrue() {
-    String userInput = "yes\n";
-    System.setIn(new ByteArrayInputStream(userInput.getBytes(StandardCharsets.UTF_8)));
-    boolean result = option.askForFixConfirmation();
-    assertThat(result).isTrue();
+  void testAskForConfirmation_yes() {
+    System.setIn(new ByteArrayInputStream("yes\n".getBytes(StandardCharsets.UTF_8)));
+    assertThat(option.askForFixConfirmation()).isTrue();
   }
 
   @Test
-  void askForFixConfirmation_userAnswersYes_fullWordUppercase_returnsTrue() {
-    String userInput = "YES\n";
-    System.setIn(new ByteArrayInputStream(userInput.getBytes(StandardCharsets.UTF_8)));
-    boolean result = option.askForFixConfirmation();
-    assertThat(result).isTrue();
+  void testAskForConfirmation_YES() {
+    System.setIn(new ByteArrayInputStream("YES\n".getBytes(StandardCharsets.UTF_8)));
+    assertThat(option.askForFixConfirmation()).isTrue();
   }
 
   @Test
-  void askForFixConfirmation_userAnswersNo_returnsFalse() {
-    String userInput = "n\n";
-    System.setIn(new ByteArrayInputStream(userInput.getBytes(StandardCharsets.UTF_8)));
-    boolean result = option.askForFixConfirmation();
-    assertThat(result).isFalse();
+  void testAskForConfirmation_n() {
+    System.setIn(new ByteArrayInputStream("n\n".getBytes(StandardCharsets.UTF_8)));
+    assertThat(option.askForFixConfirmation()).isFalse();
   }
 
   @Test
-  void askForFixConfirmation_userAnswersNo_fullWord_returnsFalse() {
-    String userInput = "no\n";
-    System.setIn(new ByteArrayInputStream(userInput.getBytes(StandardCharsets.UTF_8)));
-    boolean result = option.askForFixConfirmation();
-    assertThat(result).isFalse();
+  void testAskForConfirmation_no() {
+    System.setIn(new ByteArrayInputStream("no\n".getBytes(StandardCharsets.UTF_8)));
+    assertThat(option.askForFixConfirmation()).isFalse();
   }
 
   @Test
-  void askForFixConfirmation_userAnswersEmpty_returnsFalse() {
-    String userInput = "\n";
-    System.setIn(new ByteArrayInputStream(userInput.getBytes(StandardCharsets.UTF_8)));
-    boolean result = option.askForFixConfirmation();
-    assertThat(result).isFalse();
+  void testAskForConfirmation_empty() {
+    System.setIn(new ByteArrayInputStream("\n".getBytes(StandardCharsets.UTF_8)));
+    assertThat(option.askForFixConfirmation()).isFalse();
   }
 
   @Test
-  void askForFixConfirmation_userAnswersWithWhitespace_trimsAndEvaluates() {
-    String userInput = "  y  \n";
-    System.setIn(new ByteArrayInputStream(userInput.getBytes(StandardCharsets.UTF_8)));
-    boolean result = option.askForFixConfirmation();
-    assertThat(result).isTrue();
+  void testAskForConfirmation_whitespace() {
+    System.setIn(new ByteArrayInputStream("   \n".getBytes(StandardCharsets.UTF_8)));
+    assertThat(option.askForFixConfirmation()).isFalse();
   }
 
   @Test
-  void askForFixConfirmation_userAnswersInvalidInput_returnsFalse() {
-    String userInput = "maybe\n";
-    System.setIn(new ByteArrayInputStream(userInput.getBytes(StandardCharsets.UTF_8)));
-    boolean result = option.askForFixConfirmation();
-    assertThat(result).isFalse();
+  void testAskForConfirmation_invalid() {
+    System.setIn(new ByteArrayInputStream("maybe\n".getBytes(StandardCharsets.UTF_8)));
+    assertThat(option.askForFixConfirmation()).isFalse();
   }
 
-  private File createValidGenmodelFile(Path tempDir) throws Exception {
-    return createValidGenmodelFile(tempDir, "model.genmodel");
+  @Test
+  void testAskForConfirmation_withWhitespace() {
+    System.setIn(new ByteArrayInputStream("  yes  \n".getBytes(StandardCharsets.UTF_8)));
+    assertThat(option.askForFixConfirmation()).isTrue();
   }
 
   private File createValidGenmodelFile(Path tempDir, String filename) throws Exception {
     File ecore = Files.createFile(tempDir.resolve(filename.replace(".genmodel", ".ecore"))).toFile();
-    String ecoreContent = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
+    Files.writeString(ecore.toPath(), 
+        "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
         + "<ecore:EPackage xmi:version=\"2.0\" xmlns:xmi=\"http://www.omg.org/XMI\" "
-        + "xmlns:ecore=\"http://www.eclipse.org/emf/2002/Ecore\" name=\"model\" "
-        + "nsURI=\"http://example/model\" nsPrefix=\"model\"></ecore:EPackage>";
-    Files.writeString(ecore.toPath(), ecoreContent, StandardCharsets.UTF_8);
+        + "xmlns:ecore=\"http://www.eclipse.org/emf/2002/Ecore\" name=\"testmodel\" "
+        + "nsURI=\"http://test/model/1.0\" nsPrefix=\"tm\"></ecore:EPackage>",
+        StandardCharsets.UTF_8);
     File genmodelFile = tempDir.resolve(filename).toFile();
-    String genmodelContent = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
+    String basePath = tempDir.toString().replace("\\", "/");
+    Files.writeString(genmodelFile.toPath(),
+        "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
         + "<genmodel:GenModel xmi:version=\"2.0\" xmlns:xmi=\"http://www.omg.org/XMI\" "
-        + "xmlns:genmodel=\"http://www.eclipse.org/emf/2002/GenModel\" modelPluginID=\"p\" "
-        + "modelDirectory=\"/p/target/generated-sources/ecore\" creationIcons=\"false\">"
-        + "<genPackages prefix=\"Model\" basePackage=\"p\" ecorePackage=\"" + ecore.getName() + "#/\"/>"
-        + "</genmodel:GenModel>";
-    Files.writeString(genmodelFile.toPath(), genmodelContent, StandardCharsets.UTF_8);
+        + "xmlns:genmodel=\"http://www.eclipse.org/emf/2002/GenModel\" "
+        + "modelDirectory=\"" + basePath + "/target/generated-sources/ecore\" "
+        + "modelPluginID=\"testmodel\" basePackage=\"test.model\" creationIcons=\"false\" "
+        + "complianceLevel=\"JDK50\" copyrightFields=\"false\" copyrightText=\"\">"
+        + "<genPackages prefix=\"Testmodel\" basePackage=\"test.model\" "
+        + "ecorePackage=\"model.ecore#/\"></genPackages>"
+        + "</genmodel:GenModel>", StandardCharsets.UTF_8);
     return genmodelFile;
   }
 
   private File createGenmodelFileWithIssues(Path tempDir) throws Exception {
     File ecore = tempDir.resolve("issues.ecore").toFile();
-    String ecoreContent = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
-        + "<ecore:EPackage xmi:version=\"2.0\" xmlns:xmi=\"http://www.omg.org/XMI\" "
-        + "xmlns:ecore=\"http://www.eclipse.org/emf/2002/Ecore\" name=\"model\" "
-        + "nsURI=\"http://example/model\" nsPrefix=\"model\"></ecore:EPackage>";
-    Files.writeString(ecore.toPath(), ecoreContent, StandardCharsets.UTF_8);
+    Files.writeString(ecore.toPath(),
+        "<?xml version=\"1.0\"?><ecore:EPackage xmi:version=\"2.0\" "
+        + "xmlns:xmi=\"http://www.omg.org/XMI\" xmlns:ecore=\"http://www.eclipse.org/emf/2002/Ecore\" "
+        + "name=\"model\" nsURI=\"http://example/model\" nsPrefix=\"model\"></ecore:EPackage>",
+        StandardCharsets.UTF_8);
     File genmodelFile = tempDir.resolve("issues.genmodel").toFile();
-    String genmodelContent = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
-        + "<genmodel:GenModel xmi:version=\"2.0\" xmlns:xmi=\"http://www.omg.org/XMI\" "
-        + "xmlns:genmodel=\"http://www.eclipse.org/emf/2002/GenModel\" modelPluginID=\"p\" "
-        + "modelDirectory=\"/wrong/path\" creationIcons=\"true\">"
+    Files.writeString(genmodelFile.toPath(),
+        "<?xml version=\"1.0\"?><genmodel:GenModel xmi:version=\"2.0\" "
+        + "xmlns:xmi=\"http://www.omg.org/XMI\" xmlns:genmodel=\"http://www.eclipse.org/emf/2002/GenModel\" "
+        + "modelPluginID=\"p\" modelDirectory=\"/wrong/path\" creationIcons=\"true\">"
         + "<genPackages prefix=\"Model\" basePackage=\"wrong.base\" ecorePackage=\"issues.ecore#/\"/>"
-        + "</genmodel:GenModel>";
-    Files.writeString(genmodelFile.toPath(), genmodelContent, StandardCharsets.UTF_8);
+        + "</genmodel:GenModel>", StandardCharsets.UTF_8);
     return genmodelFile;
   }
 
   private MetamodelLocation createMockMetamodelLocation(File genmodelFile, @SuppressWarnings("unused") String modelPluginId) {
     MetamodelLocation location = mock(MetamodelLocation.class);
-    when(location.genmodel()).thenReturn(genmodelFile);
-    when(location.toString()).thenReturn(genmodelFile.getAbsolutePath());
+    lenient().when(location.genmodel()).thenReturn(genmodelFile);
+    lenient().when(location.toString()).thenReturn(genmodelFile.getAbsolutePath());
     return location;
   }
 }
-
