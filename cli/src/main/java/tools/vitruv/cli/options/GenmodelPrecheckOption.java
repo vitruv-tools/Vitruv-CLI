@@ -6,11 +6,13 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Scanner;
 import org.apache.commons.cli.CommandLine;
+import lombok.extern.slf4j.Slf4j;
 import tools.vitruv.cli.configuration.MetamodelLocation;
 import tools.vitruv.cli.configuration.VitruvConfiguration;
 import tools.vitruv.framework.vsum.VirtualModelBuilder;
 
 /** CLI option to inspect and optionally standardize .genmodel files for MWE2 compatibility. */
+@Slf4j
 public class GenmodelPrecheckOption extends VitruvCLIOption {
 
   private static final String OPT = "pg";
@@ -58,7 +60,7 @@ public class GenmodelPrecheckOption extends VitruvCLIOption {
     throwIfFailuresExist(failures);
 
     if (previewIssues.isEmpty()) {
-      System.out.println("No problems found in the provided genmodel files.");
+      log.info("No problems found in the provided genmodel files.");
       return;
     }
 
@@ -132,7 +134,7 @@ public class GenmodelPrecheckOption extends VitruvCLIOption {
    */
   private void handleNoIssues(List<GenmodelPrecheck.Issue> previewIssues) {
     if (previewIssues.isEmpty()) {
-      System.out.println("No problems found in the provided genmodel files.");
+      log.info("No problems found in the provided genmodel files.");
       throw new NoIssuesFoundException();
     }
   }
@@ -143,9 +145,9 @@ public class GenmodelPrecheckOption extends VitruvCLIOption {
    * @param previewIssues the detected issues
    */
   private void printPreviewIssues(List<GenmodelPrecheck.Issue> previewIssues) {
-    System.out.println("We found some problems in your genmodel files:");
+    log.info("We found some problems in your genmodel files:");
     for (GenmodelPrecheck.Issue issue : previewIssues) {
-      System.out.println("- " + issue);
+      log.info("- " + issue);
     }
   }
 
@@ -190,13 +192,13 @@ public class GenmodelPrecheckOption extends VitruvCLIOption {
    */
   private void printAppliedIssues(List<GenmodelPrecheck.Issue> appliedIssues) {
     if (appliedIssues.isEmpty()) {
-      System.out.println("No changes were necessary.");
+      log.info("No changes were necessary.");
       return;
     }
 
-    System.out.println("Applied genmodel changes:");
+    log.info("Applied genmodel changes:");
     for (GenmodelPrecheck.Issue issue : appliedIssues) {
-      System.out.println("- " + issue);
+      log.info("- " + issue);
     }
   }
 
@@ -209,7 +211,7 @@ public class GenmodelPrecheckOption extends VitruvCLIOption {
    * @return {@code true} if the user confirmed the fixes
    */
   public boolean askForFixConfirmation() {
-    System.out.print("Do you want to fix them? [y/N]: ");
+    log.info("Do you want to fix them? [y/N]: ");
     Scanner scanner = new Scanner(System.in);
     String input = scanner.nextLine();
     String normalized = input == null ? "" : input.trim().toLowerCase(Locale.ROOT);

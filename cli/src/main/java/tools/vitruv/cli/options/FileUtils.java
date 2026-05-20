@@ -9,13 +9,12 @@ import java.nio.file.StandardCopyOption;
 import java.util.Enumeration;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
-import java.util.logging.Logger;
+import lombok.extern.slf4j.Slf4j;
 import tools.vitruv.cli.configuration.CustomClassLoader;
 
 /** The FileUtils class provides utility methods for file operations. */
+@Slf4j
 public final class FileUtils {
-
-  private static final Logger logger = Logger.getLogger(FileUtils.class.getName());
 
   private FileUtils() {}
 
@@ -60,7 +59,7 @@ public final class FileUtils {
     }
     // Files.copy throws a misleading Exception if the target File and/or the
     // folders of the target file are not existing.
-    logger.info("Copying file " + source.getAbsolutePath() + " to  " + target.getAbsolutePath());
+    log.info("Copying file " + source.getAbsolutePath() + " to  " + target.getAbsolutePath());
     target.getParentFile().mkdirs();
     try {
       target.createNewFile();
@@ -86,12 +85,12 @@ public final class FileUtils {
       }
       // Create the file
       if (file.createNewFile()) {
-        logger.info("File created: " + file.getAbsolutePath());
+        log.info("File created: " + file.getAbsolutePath());
       } else {
-        logger.info("File already exists: " + file.getAbsolutePath());
+        log.info("File already exists: " + file.getAbsolutePath());
       }
     } catch (IOException e) {
-      logger.info("An error occurred while creating the file: " + e.getMessage());
+      log.error("An error occurred while creating the file: " + e.getMessage());
       e.printStackTrace();
     }
   }
@@ -107,9 +106,9 @@ public final class FileUtils {
     Path folderPath = path.resolve(folder);
     File file = folderPath.toFile();
     if (file.mkdirs()) {
-      logger.info("Directory created: " + file.getAbsolutePath());
+      log.info("Directory created: " + file.getAbsolutePath());
     } else {
-      logger.info("Directory already exists: " + file.getAbsolutePath());
+      log.info("Directory already exists: " + file.getAbsolutePath());
     }
     return folderPath;
   }
@@ -155,7 +154,7 @@ public final class FileUtils {
         if (entry.getName().endsWith(".class")) {
           // Print the class name
           String className = entry.getName().replace("/", ".").replace(".class", "");
-          logger.info(className);
+          log.info(className);
         }
       }
 

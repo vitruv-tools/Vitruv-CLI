@@ -4,10 +4,15 @@ import java.io.File;
 
 import org.apache.commons.cli.CommandLine;
 
+import lombok.extern.slf4j.Slf4j;
 import tools.vitruv.change.propagation.ChangePropagationSpecification;
 import tools.vitruv.cli.configuration.VitruvConfiguration;
 import tools.vitruv.framework.vsum.VirtualModelBuilder;
 
+/**
+ * CLI option handler for configuring change propagation reactions in the Vitruv framework.
+ */
+@Slf4j
 public class ReactionOption extends VitruvCLIOption {
 
   private File reactionsFile;
@@ -38,7 +43,7 @@ public class ReactionOption extends VitruvCLIOption {
     ChangePropagationSpecification loadedClass = null;
     try {
       String name = FileUtils.findOption(reactionsFile, "reactions:");
-      System.out.println(
+      log.info(
           name.substring(0, 1).toUpperCase()
               + name.substring(1)
               + "ChangePropagationSpecification");
@@ -62,7 +67,7 @@ public class ReactionOption extends VitruvCLIOption {
                   + "ChangePropagationSpecification")
           .getDeclaredConstructor()
           .newInstance();
-      System.out.println("that works");
+      log.info("that works");
     } catch (Exception e) {
       e.printStackTrace();
     }

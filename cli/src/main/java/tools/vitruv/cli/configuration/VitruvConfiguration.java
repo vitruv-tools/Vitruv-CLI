@@ -4,9 +4,9 @@ import java.io.File;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Logger;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 import org.eclipse.emf.codegen.ecore.genmodel.GenModel;
 import org.eclipse.emf.codegen.ecore.genmodel.GenModelPackage;
 import org.eclipse.emf.common.util.URI;
@@ -17,9 +17,8 @@ import org.eclipse.emf.ecore.resource.impl.ResourceSetImpl;
 import org.eclipse.emf.ecore.xmi.impl.XMIResourceFactoryImpl;
 
 /** The VitruvConfiguration class is used to store the configuration of the Vitruv CLI. */
+@Slf4j
 public class VitruvConfiguration {
-
-  private static final Logger logger = Logger.getLogger(VitruvConfiguration.class.getName());
 
   /**
    * -- SETTER -- Sets the local path of the configuration.
@@ -93,7 +92,7 @@ public class VitruvConfiguration {
         if (!genmodelResource.getContents().isEmpty()
             && genmodelResource.getContents().get(0) instanceof GenModel genModel) {
           String packageString = removeLastSegment(genModel.getModelPluginID());
-          logger.info("--------------------->>>>  " + packageString);
+          log.info("--------------------->>>>  " + packageString);
           this.setPackageName(packageString);
           localModelDirectory = genModel.getModelDirectory();
         }
