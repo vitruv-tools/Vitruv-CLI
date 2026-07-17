@@ -18,6 +18,14 @@ public class GenmodelPrecheckOption extends VitruvCLIOption {
   private static final String OPT = "pg";
   private static final String APPLY = "apply";
 
+  /**
+   * Prefix for the machine-readable status line consumers (e.g. the Methodologist backend, which
+   * invokes this CLI as a subprocess and parses its stdout) look for to determine the outcome of a
+   * precheck run. Must be followed by one of {@code CLEAN}, {@code ISSUES_FOUND}, or {@code
+   * FIXES_APPLIED} on the same line.
+   */
+  private static final String GENMODEL_PRECHECK_STATUS_PREFIX = "GENMODEL_PRECHECK_STATUS:";
+
   /** Constructs the genmodel precheck option. */
   public GenmodelPrecheckOption() {
     super(
@@ -61,14 +69,33 @@ public class GenmodelPrecheckOption extends VitruvCLIOption {
 
     if (previewIssues.isEmpty()) {
       log.info("No problems found in the provided genmodel files.");
+      printStatusMarker("CLEAN");
       return;
     }
 
     printPreviewIssues(previewIssues);
-    handleConfirmation(applyImmediately);
+    if (!handleConfirmation(applyImmediately)) {
+      printStatusMarker("ISSUES_FOUND");
+      return;
+    }
 
     List<GenmodelPrecheck.Issue> appliedIssues = applyFixes(locations, precheck);
     printAppliedIssues(appliedIssues);
+    printStatusMarker("FIXES_APPLIED");
+  }
+
+  /**
+   * Prints the machine-readable status marker directly to stdout.
+   *
+   * <p>Uses {@code System.out} rather than the SLF4J logger: consumers (see {@link
+   * #GENMODEL_PRECHECK_STATUS_PREFIX}) match the marker at the start of a stdout line, but the
+   * logger's pattern layout prefixes every line with a timestamp/level/logger name, which would
+   * never satisfy that match.
+   *
+   * @param status one of {@code CLEAN}, {@code ISSUES_FOUND}, or {@code FIXES_APPLIED}
+   */
+  private void printStatusMarker(String status) {
+    System.out.println(GENMODEL_PRECHECK_STATUS_PREFIX + " " + status);
   }
 
   /**
@@ -155,12 +182,12 @@ public class GenmodelPrecheckOption extends VitruvCLIOption {
    * Handles interactive confirmation when automatic apply is not enabled.
    *
    * @param applyImmediately whether fixes should be applied immediately
+   * @return {@code true} if fixes should be applied (either {@code applyImmediately} was set, or
+   *     the user confirmed interactively), {@code false} if declined or no confirmation could be
+   *     obtained (for example when running non-interactively with no stdin available)
    */
-  private void handleConfirmation(boolean applyImmediately) {
-    if (!applyImmediately && !askForFixConfirmation()) {
-      throw new IllegalArgumentException(
-          "Genmodel precheck found issues and fixes were declined. Execution stopped.");
-    }
+  private boolean handleConfirmation(boolean applyImmediately) {
+    return applyImmediately || askForFixConfirmation();
   }
 
   /**
@@ -208,11 +235,17 @@ public class GenmodelPrecheckOption extends VitruvCLIOption {
   /**
    * Prompts the user to confirm whether detected fixes should be applied.
    *
+   * <p>When run non-interactively (no stdin available, e.g. invoked as a subprocess with its input
+   * stream closed) there is no line to read; this is treated as a decline rather than a crash.
+   *
    * @return {@code true} if the user confirmed the fixes
    */
   public boolean askForFixConfirmation() {
     log.info("Do you want to fix them? [y/N]: ");
     Scanner scanner = new Scanner(System.in);
+    if (!scanner.hasNextLine()) {
+      return false;
+    }
     String input = scanner.nextLine();
     String normalized = input == null ? "" : input.trim().toLowerCase(Locale.ROOT);
     return "y".equals(normalized) || "yes".equals(normalized);
