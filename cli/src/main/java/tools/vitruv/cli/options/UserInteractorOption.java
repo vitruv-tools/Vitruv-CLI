@@ -32,5 +32,6 @@ public class UserInteractorOption extends VitruvCLIOption {
 
   @Override
   public void prepare(CommandLine cmd, VitruvConfiguration configuration) {
+    throw new UnsupportedOperationException("UserInteractorOption does not require preparation.");
   }
 }
