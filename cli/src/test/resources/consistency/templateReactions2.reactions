@@ -6,3 +6,20 @@ reactions: model2toModel
 in reaction to changes in model2
 execute actions in model
 
+reaction RootInsertedAsRoot {
+	after element model2::Root inserted as root
+	call createSystem(newValue)
+}
+
+routine createSystem(model2::Root model2Root) {
+	match {
+		require absence of model::System corresponding to model2Root
+	}
+	create {
+		val system = new model::System
+	}
+	update {
+		persistProjectRelative(model2Root, system, "example.model")
+		addCorrespondenceBetween(model2Root, system)
+	}
+}

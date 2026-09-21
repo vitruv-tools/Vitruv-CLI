@@ -15,6 +15,7 @@ import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.resource.ResourceSet;
 import org.eclipse.emf.ecore.resource.impl.ResourceSetImpl;
 import org.eclipse.emf.ecore.xmi.impl.XMIResourceFactoryImpl;
+import tools.vitruv.cli.options.FileUtils;
 
 /** The VitruvConfiguration class is used to store the configuration of the Vitruv CLI. */
 @Slf4j
@@ -113,6 +114,28 @@ public class VitruvConfiguration {
     if (reactionLocations != null) {
       this.reactionLocations.addAll(reactionLocations);
     }
+  }
+
+  /**
+   * Returns the fully qualified names of the change propagation specifications that are generated
+   * for the configured reaction files, in the order of the reaction files.
+   *
+   * @return the change propagation specification class names.
+   */
+  public List<String> getChangePropagationSpecificationNames() {
+    List<String> specificationNames = new ArrayList<>();
+    for (Path reactionLocation : reactionLocations) {
+      for (String name : FileUtils.findOptions(reactionLocation.toFile(), "reactions:")) {
+        specificationNames.add(
+            "mir.reactions."
+                + name
+                + "."
+                + name.substring(0, 1).toUpperCase()
+                + name.substring(1)
+                + "ChangePropagationSpecification");
+      }
+    }
+    return specificationNames;
   }
 
   /**
