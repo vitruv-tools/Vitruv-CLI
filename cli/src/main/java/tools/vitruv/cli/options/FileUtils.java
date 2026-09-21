@@ -7,6 +7,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.Enumeration;
+import java.util.List;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import lombok.extern.slf4j.Slf4j;
@@ -113,6 +114,24 @@ public final class FileUtils {
     return folderPath;
   }
 
+  /**
+   * Finds the values of all lines in the given file that start with the given option.
+   *
+   * @param file The file to search in.
+   * @param option The prefix of the lines whose values should be returned.
+   * @return The trimmed values following the option, in the order of their occurrence.
+   */
+  public static List<String> findOptions(File file, String option) {
+    try {
+      return Files.readAllLines(file.toPath()).stream()
+          .filter(line -> line.startsWith(option))
+          .map(line -> line.substring(option.length()).trim())
+          .toList();
+    } catch (IOException e) {
+      throw new IllegalArgumentException("Could not read file " + file + ": " + e.getMessage(), e);
+    }
+  }
+
   public static String findOption(File file, String option) {
     try {
       for (String line : Files.readAllLines(file.toPath())) {
@@ -133,7 +152,7 @@ public final class FileUtils {
    */
   public static void addJarToClassPath(String jarPath) {
     try {
-      URL jarUrl = new URL("file:///" + jarPath);
+      URL jarUrl = new File(jarPath).toURI().toURL();
       CLASS_LOADER.addJar(jarUrl);
     } catch (Exception e) {
       e.printStackTrace();

@@ -71,6 +71,13 @@ public class ReactionsOption extends VitruvCLIOption {
   }
 
   @Override
+  public VirtualModelBuilder postBuild(
+      CommandLine cmd, VirtualModelBuilder builder, VitruvConfiguration configuration) {
+    if (!cmd.hasOption(MULTI_REACTIONS_OPT)) return builder;
+    return loadChangePropagationSpecifications(cmd, builder, configuration);
+  }
+
+  @Override
   public VirtualModelBuilder applyInternal(
       CommandLine cmd, VirtualModelBuilder builder, VitruvConfiguration configuration) {
     return builder;

@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.Arrays;
+import java.util.Optional;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -24,6 +25,7 @@ import tools.vitruv.cli.options.ReactionOption;
 import tools.vitruv.cli.options.ReactionsOption;
 import tools.vitruv.cli.options.UserInteractorOption;
 import tools.vitruv.cli.options.VitruvCLIOption;
+import tools.vitruv.framework.vsum.VirtualModel;
 import tools.vitruv.framework.vsum.VirtualModelBuilder;
 
 /**
@@ -51,29 +53,8 @@ public class CLI {
    * @param args The command line arguments.
    */
   public void parseCLI(String[] args) {
-    CommandLineParser parser = new DefaultParser();
-    VitruvConfiguration configuration = new VitruvConfiguration();
-
     try {
-      ParsedCli parsedCli = createParsedCli(parser, args);
-      CommandLine line = parsedCli.line();
-
-      validateReactionOptions(line);
-
-      VirtualModelBuilder builder = new VirtualModelBuilder();
-
-      prepareOptionsInOrder(line, configuration, parsedCli);
-
-      if (shouldStopAfterPrecheck(line)) {
-        return;
-      }
-
-      generateFiles(configuration);
-      runPreBuild(line, builder, configuration);
-      runMavenBuild(configuration);
-      runPostBuild(line, builder, configuration);
-
-      log.info(builder.buildAndInitialize().toString());
+      run(args);
     } catch (ParseException exp) {
       log.error("Parsing failed.  Reason: " + exp.getMessage());
     } catch (IllegalArgumentException exp) {
@@ -83,6 +64,45 @@ public class CLI {
     } catch (MissingModelException e) {
       log.error("Generating files failed (missing models).  Reason: " + e.getMessage());
     }
+  }
+
+  /**
+   * Runs the CLI workflow for the given arguments without swallowing failures, such that callers
+   * can react to them.
+   *
+   * @param args The command line arguments.
+   * @return the built virtual model, or an empty optional if only the genmodel precheck was run.
+   * @throws ParseException if the arguments cannot be parsed
+   * @throws IOException if the Maven build cannot be started or files cannot be written
+   * @throws InterruptedException if the Maven build is interrupted
+   * @throws MissingModelException if no package name could be derived from the metamodels
+   */
+  public Optional<VirtualModel> run(String[] args)
+      throws ParseException, IOException, InterruptedException, MissingModelException {
+    CommandLineParser parser = new DefaultParser();
+    VitruvConfiguration configuration = new VitruvConfiguration();
+
+    ParsedCli parsedCli = createParsedCli(parser, args);
+    CommandLine line = parsedCli.line();
+
+    validateReactionOptions(line);
+
+    VirtualModelBuilder builder = new VirtualModelBuilder();
+
+    prepareOptionsInOrder(line, configuration, parsedCli);
+
+    if (shouldStopAfterPrecheck(line)) {
+      return Optional.empty();
+    }
+
+    generateFiles(configuration);
+    runPreBuild(line, builder, configuration);
+    runMavenBuild(configuration);
+    runPostBuild(line, builder, configuration);
+
+    VirtualModel virtualModel = builder.buildAndInitialize();
+    log.info(virtualModel.toString());
+    return Optional.of(virtualModel);
   }
 
   /**
@@ -345,13 +365,15 @@ public class CLI {
     generateFromTemplate.generateVsumExample(
         new File((configuration.getLocalPath() + "/vsum/src/main/java/VSUMExample.java").trim()),
         configuration.getPackageName(),
-        configuration.getModelNames());
+        configuration.getModelNames(),
+        configuration.getChangePropagationSpecificationNames());
     log.info("Generating vsum example java class");
 
     generateFromTemplate.generateVsumTest(
         new File(
             (configuration.getLocalPath() + "/vsum/src/test/java/VSUMExampleTest.java").trim()),
-        configuration.getPackageName());
+        configuration.getPackageName(),
+        configuration.getChangePropagationSpecificationNames());
     log.info("Generating vsum example test java class");
 
     generateFromTemplate.generateProjectFile(
