@@ -28,7 +28,7 @@ public class ReactionOption extends VitruvCLIOption {
     if (!cmd.hasOption(getOpt())) {
       return builder;
     }
-    String reactionsPath = cmd.getOptionValue(getOpt());
+    String reactionsPath = getValue();
     reactionsFile = FileUtils.copyFile(
         reactionsPath, getPath(cmd, builder), "/consistency/src/main/reactions/");
     return builder;
