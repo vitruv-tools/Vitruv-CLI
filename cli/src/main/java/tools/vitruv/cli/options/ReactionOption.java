@@ -1,7 +1,7 @@
 package tools.vitruv.cli.options;
 
 import java.nio.file.Path;
-import java.util.List;
+import java.util.Arrays;
 
 import org.apache.commons.cli.CommandLine;
 
@@ -24,7 +24,7 @@ public class ReactionOption extends VitruvCLIOption {
     if (!cmd.hasOption(getOpt())) {
       return builder;
     }
-    String reactionsPath = cmd.getOptionValue(getOpt());
+    String reactionsPath = getValue();
     FileUtils.copyFile(
         reactionsPath, getPath(cmd, builder), "/consistency/src/main/reactions/");
     return builder;
@@ -45,6 +45,8 @@ public class ReactionOption extends VitruvCLIOption {
       return;
     }
     configuration.setReactionLocations(
-        List.of(Path.of(cmd.getOptionValue(getOpt()).trim()).toAbsolutePath()));
+        Arrays.stream(cmd.getOptionValues(getOpt()))
+            .map(value -> Path.of(value.trim()).toAbsolutePath())
+            .toList());
   }
 }

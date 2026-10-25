@@ -5,7 +5,9 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Optional;
+import java.util.Set;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -230,7 +232,12 @@ public class CLI {
    */
   private void runPostBuild(
       CommandLine line, VirtualModelBuilder builder, VitruvConfiguration configuration) {
+    // Post-build handlers use the complete prepared configuration, including all reaction files.
+    Set<String> processedOptions = new HashSet<>();
     for (Option option : line.getOptions()) {
+      if (!processedOptions.add(option.getOpt())) {
+        continue;
+      }
       log.info(
           "Postprocessing option " + option.getLongOpt() + " with value " + option.getValuesList());
       ((VitruvCLIOption) option).postBuild(line, builder, configuration);

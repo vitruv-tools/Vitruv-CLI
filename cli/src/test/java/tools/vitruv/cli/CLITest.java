@@ -21,6 +21,8 @@ import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.xmi.impl.XMIResourceFactoryImpl;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import tools.vitruv.change.utils.ProjectMarker;
 import tools.vitruv.cli.options.FileUtils;
 import tools.vitruv.framework.views.CommittableView;
@@ -87,6 +89,35 @@ class CLITest {
     assertThat(vsum).isPresent();
     assertGeneratedVsumTestWasExecuted(folder);
     assertRootIsPropagated(vsum.get(), folder, MODEL2_FACTORY, "Root", "model2", "System");
+  }
+
+  @ParameterizedTest
+  @ValueSource(booleans = {false, true})
+  void repeatedReactionOptionsPropagateChangesInBothDirections(boolean reverse) throws Exception {
+    Path folder = cleanFolder(OUTPUT_ROOT.resolve("repeated-reactions-" + reverse));
+
+    Optional<VirtualModel> vsum =
+        new CLI()
+            .run(
+                new String[] {
+                  "-m", metamodelsIn(TEST_RESOURCES.resolve("model")),
+                  "-f", folder.toString(),
+                  "-u", "default",
+                  "-r", MODEL_TO_MODEL2_REACTIONS.toString(),
+                  "--reaction", MODEL2_TO_MODEL_REACTIONS.toString()
+                });
+
+    assertThat(vsum).isPresent();
+    assertGeneratedVsumTestWasExecuted(folder);
+    assertThat(folder.resolve("consistency/src/main/reactions/templateReactions.reactions"))
+        .exists();
+    assertThat(folder.resolve("consistency/src/main/reactions/templateReactions2.reactions"))
+        .exists();
+    if (reverse) {
+      assertRootIsPropagated(vsum.get(), folder, MODEL2_FACTORY, "Root", "model2", "System");
+    } else {
+      assertRootIsPropagated(vsum.get(), folder, MODEL_FACTORY, "System", "model", "Root");
+    }
   }
 
   @Test
