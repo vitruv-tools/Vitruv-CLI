@@ -3,6 +3,7 @@ package ${packageName}.vsum;
 import tools.vitruv.framework.vsum.VirtualModelBuilder;
 import ${packageName}.model.model.ModelFactory;
 
+import java.io.IOException;
 import java.nio.file.Path;
 import java.util.function.Consumer;
 
@@ -35,7 +36,7 @@ public class VSUMExampleTest {
 
   @Disabled
   @Test
-  void test() {
+  void test() throws IOException {
     VirtualModel vsum = createDefaultVirtualModel();
     CommittableView view = getDefaultView(vsum).withChangeDerivingTrait();
     modifyView(view, (CommittableView v) -> {
@@ -46,7 +47,7 @@ public class VSUMExampleTest {
     Assertions.assertFalse(getDefaultView(vsum).getRootObjects().isEmpty(),"Modification of view failed");
   }
 
-  private VirtualModel createDefaultVirtualModel() {
+  private VirtualModel createDefaultVirtualModel() throws IOException {
     return new VirtualModelBuilder()
         .withStorageFolder(projectPath)
         .withUserInteractorForResultProvider(new TestUserInteraction.ResultProvider(new TestUserInteraction()))

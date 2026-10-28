@@ -1,0 +1,2 @@
+context model::Component inv namedComponent:
+  self.name.size() > 0

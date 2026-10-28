@@ -15,6 +15,7 @@ import freemarker.template.TemplateException;
 import freemarker.template.TemplateExceptionHandler;
 import lombok.extern.slf4j.Slf4j;
 import tools.vitruv.cli.configuration.MetamodelLocation;
+import tools.vitruv.cli.configuration.ProjectVersions;
 import tools.vitruv.cli.configuration.VitruvConfiguration;
 import tools.vitruv.cli.exceptions.MissingModelException;
 import tools.vitruv.cli.options.FileUtils;
@@ -27,6 +28,7 @@ public class GenerateFromTemplate {
   }
 
   private static final String PACKAGE_NAME = "packageName";
+  private static final String VERSIONS = "versions";
 
   private Configuration getConfiguration() {
     Configuration cfg = new Configuration(Configuration.VERSION_2_3_31);
@@ -56,10 +58,11 @@ public class GenerateFromTemplate {
    *
    * @param filePath    The file path to write the root pom file to.
    * @param packageName The package name from the genmodel.
+   * @param versions    The versions of the Vitruvius artifacts the project uses.
    * @throws IOException           If the file cannot be written.
    * @throws MissingModelException If the package name is missing.
    */
-  public void generateRootPom(File filePath, String packageName)
+  public void generateRootPom(File filePath, String packageName, ProjectVersions versions)
       throws IOException, MissingModelException {
 
     if (packageName == null || packageName.isEmpty()) {
@@ -69,6 +72,7 @@ public class GenerateFromTemplate {
 
     Map<String, Object> data = new HashMap<>();
     data.put("packageName", packageName.trim());
+    data.put(VERSIONS, versions.asTemplateData());
 
     Template template = null;
     try {
@@ -84,13 +88,16 @@ public class GenerateFromTemplate {
    *
    * @param filePath    The file path to write the vsum pom file to.
    * @param packageName The package name from the genmodel.
+   * @param versions    The versions of the Vitruvius artifacts the project uses.
    * @throws IOException If the file cannot be written.
    */
-  public void generateVsumPom(File filePath, String packageName) throws IOException {
+  public void generateVsumPom(File filePath, String packageName, ProjectVersions versions)
+      throws IOException {
     Configuration cfg = getConfiguration();
 
     Map<String, Object> data = new HashMap<>();
     data.put("packageName", packageName.trim());
+    data.put(VERSIONS, versions.asTemplateData());
 
     Template template = null;
     try {
@@ -104,16 +111,22 @@ public class GenerateFromTemplate {
   /**
    * Generates the vsum example file.
    *
-   * @param filePath    The file path to write the vsum example file to.
-   * @param packageName The package name from the genmodel.
+   * @param filePath            The file path to write the vsum example file to.
+   * @param packageName         The package name from the genmodel.
+   * @param models              The names of the metamodels.
+   * @param constraintResources The classpath resource names of the OCL constraint files to
+   *                            register at the VSUM, empty if there are none.
    * @throws IOException If the file cannot be written.
    */
-  public void generateVsumExample(File filePath, String packageName, List<String> models) throws IOException {
+  public void generateVsumExample(
+      File filePath, String packageName, List<String> models, List<String> constraintResources)
+      throws IOException {
     Configuration cfg = getConfiguration();
 
     Map<String, Object> data = new HashMap<>();
     data.put("packageName", packageName.trim());
     data.put("models", models);
+    data.put("constraintResources", constraintResources);
 
     Template template = null;
     try {

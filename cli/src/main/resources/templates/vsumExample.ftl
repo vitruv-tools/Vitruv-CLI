@@ -18,6 +18,10 @@ import tools.vitruv.framework.vsum.VirtualModel;
 import tools.vitruv.framework.remote.server.*;
 import java.util.Scanner;
 import java.io.IOException;
+<#if constraintResources?has_content>
+import java.io.UncheckedIOException;
+import tools.vitruv.dsls.vitruvocl.vitruv.VitruvOclConstraintChecker;
+</#if>
 
 /**
  * This class provides an example how to define and use a VSUM.
@@ -40,6 +44,20 @@ public class VSUMExample {
 
   private static VirtualModel createDefaultVirtualModel() {
     Collection<ViewType<?>> viewTypes = createDefaultViewTypes();
+<#if constraintResources?has_content>
+    try {
+      VirtualModel model = new VirtualModelBuilder()
+          .withStorageFolder(Path.of("vsumexample"))
+          .withUserInteractorForResultProvider(new TestUserInteraction.ResultProvider(new TestUserInteraction()))
+          .withChangePropagationSpecifications(new Model2Model2ChangePropagationSpecification()).withViewTypes(viewTypes)
+          .withConstraintChecker(VitruvOclConstraintChecker.fromClasspath(<#list constraintResources as resource>"${resource?j_string}"<#sep>, </#list>))
+          .buildAndInitialize();
+      getDefaultView(model);
+      return model;
+    } catch (IOException e) {
+      throw new UncheckedIOException("Could not initialize the virtual model", e);
+    }
+<#else>
     VirtualModel model = new VirtualModelBuilder()
         .withStorageFolder(Path.of("vsumexample"))
         .withUserInteractorForResultProvider(new TestUserInteraction.ResultProvider(new TestUserInteraction()))
@@ -47,6 +65,7 @@ public class VSUMExample {
         .buildAndInitialize();
       getDefaultView(model);
       return model;
+</#if>
   }
 
   private static View getDefaultView(VirtualModel vsum) {
