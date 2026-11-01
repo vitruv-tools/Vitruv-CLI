@@ -187,6 +187,7 @@ class CLITest {
 
   @Test
   void missingReactionsDirectoryFails() {
+    CLI cli = new CLI();
     String[] args = {
       "-m", metamodelsIn(TEST_RESOURCES.resolve("model")),
       "-f", OUTPUT_ROOT.resolve("missing-reactions").toString(),
@@ -194,7 +195,7 @@ class CLITest {
       "-rs", OUTPUT_ROOT.resolve("does-not-exist").toString()
     };
 
-    assertThatThrownBy(() -> new CLI().run(args))
+    assertThatThrownBy(() -> cli.run(args))
         .isInstanceOf(IllegalArgumentException.class)
         .hasMessageContaining("does not exist");
   }

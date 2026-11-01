@@ -78,11 +78,11 @@ class FileUtilsTest {
 
   @Test
   void findOption_shouldFail_whenOptionIsMissing() throws Exception {
-    Path file = Files.writeString(tempDir.resolve("x.reactions"), "import a\n");
+    File file = Files.writeString(tempDir.resolve("x.reactions"), "import a\n").toFile();
 
-    assertThatThrownBy(() -> FileUtils.findOption(file.toFile(), "reactions:"))
+    assertThatThrownBy(() -> FileUtils.findOption(file, "reactions:"))
         .isInstanceOf(IllegalArgumentException.class);
-    assertThat(FileUtils.findOptions(file.toFile(), "reactions:")).isEmpty();
+    assertThat(FileUtils.findOptions(file, "reactions:")).isEmpty();
   }
 
   @Test
