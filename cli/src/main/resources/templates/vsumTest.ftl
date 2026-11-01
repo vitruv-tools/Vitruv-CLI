@@ -3,6 +3,8 @@ package ${packageName}.vsum;
 import tools.vitruv.framework.vsum.VirtualModelBuilder;
 import ${packageName}.model.model.ModelFactory;
 
+import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.function.Consumer;
 
@@ -13,13 +15,15 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-import mir.reactions.model2Model2.Model2Model2ChangePropagationSpecification;
+<#list specifications as specification>
+import ${specification};
+</#list>
 import tools.vitruv.change.testutils.TestUserInteraction;
+import tools.vitruv.change.utils.ProjectMarker;
 import tools.vitruv.framework.views.CommittableView;
 import tools.vitruv.framework.views.View;
 import tools.vitruv.framework.views.ViewTypeFactory;
 import tools.vitruv.framework.vsum.VirtualModel;
-import org.junit.jupiter.api.Disabled;
 
 /**
  * This class provides an example how to define and use a VSUM.
@@ -29,11 +33,12 @@ public class VSUMExampleTest {
   static final Path projectPath = Path.of("target/vsumexample");
 
   @BeforeAll
-  static void setup() {
+  static void setup() throws IOException {
+    Files.createDirectories(projectPath);
+    ProjectMarker.markAsProjectRootFolder(projectPath);
     Resource.Factory.Registry.INSTANCE.getExtensionToFactoryMap().put("model", new XMIResourceFactoryImpl());
   }
 
-  @Disabled
   @Test
   void test() {
     VirtualModel vsum = createDefaultVirtualModel();
@@ -41,7 +46,7 @@ public class VSUMExampleTest {
     modifyView(view, (CommittableView v) -> {
       v.registerRoot(
         ModelFactory.eINSTANCE.createSystem(),
-        URI.createURI(projectPath.resolve("example.model").toString()));
+        URI.createFileURI(projectPath.resolve("example.model").toAbsolutePath().toString()));
     });
     Assertions.assertFalse(getDefaultView(vsum).getRootObjects().isEmpty(),"Modification of view failed");
   }
@@ -50,7 +55,7 @@ public class VSUMExampleTest {
     return new VirtualModelBuilder()
         .withStorageFolder(projectPath)
         .withUserInteractorForResultProvider(new TestUserInteraction.ResultProvider(new TestUserInteraction()))
-        .withChangePropagationSpecifications(new Model2Model2ChangePropagationSpecification())
+        .withChangePropagationSpecifications(<#list specifications as specification>new ${specification?keep_after_last(".")}()<#sep>, </#list>)
         .buildAndInitialize();
   }
 

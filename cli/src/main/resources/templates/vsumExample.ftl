@@ -8,7 +8,9 @@ import java.util.List;
 
 import java.nio.file.Path;
 import java.util.function.Consumer;
-import mir.reactions.model2Model2.Model2Model2ChangePropagationSpecification;
+<#list specifications as specification>
+import ${specification};
+</#list>
 import tools.vitruv.change.testutils.TestUserInteraction;
 import tools.vitruv.framework.views.CommittableView;
 import tools.vitruv.framework.views.View;
@@ -43,7 +45,7 @@ public class VSUMExample {
     VirtualModel model = new VirtualModelBuilder()
         .withStorageFolder(Path.of("vsumexample"))
         .withUserInteractorForResultProvider(new TestUserInteraction.ResultProvider(new TestUserInteraction()))
-        .withChangePropagationSpecifications(new Model2Model2ChangePropagationSpecification()).withViewTypes(viewTypes)
+        .withChangePropagationSpecifications(<#list specifications as specification>new ${specification?keep_after_last(".")}()<#sep>, </#list>).withViewTypes(viewTypes)
         .buildAndInitialize();
       getDefaultView(model);
       return model;
