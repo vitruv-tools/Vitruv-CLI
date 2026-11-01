@@ -68,9 +68,9 @@ class GenerateFromTemplateConstraintsTest {
         .contains("<version>4.0.0</version>", "<vitruv.version>4.0.2-SNAPSHOT</vitruv.version>")
         .contains("<vitruvocl.version>0.1.0-SNAPSHOT</vitruvocl.version>")
         .contains("<junit.version>6.1.0</junit.version>")
-        .contains("<artifactId>vitruvocl-language</artifactId>", "<version>${vitruvocl.version}</version>")
+        .contains("<artifactId>tools.vitruv.vitruvocl.language</artifactId>", "<version>${vitruvocl.version}</version>")
         .contains("central-snapshots");
-    assertThat(vsumPom).contains("<artifactId>vitruvocl-language</artifactId>");
+    assertThat(vsumPom).contains("<artifactId>tools.vitruv.vitruvocl.language</artifactId>");
     assertThat(example)
         .contains("import tools.vitruv.dsls.vitruvocl.vitruv.VitruvOclConstraintChecker;")
         .contains(

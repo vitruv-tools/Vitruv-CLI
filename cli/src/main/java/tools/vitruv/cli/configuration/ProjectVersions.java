@@ -41,7 +41,7 @@ public record ProjectVersions(
       new ProjectVersions(
           "4.0.0",
           "4.0.2-SNAPSHOT",
-          "4.0.1",
+          "4.0.2-SNAPSHOT",
           "4.0.0",
           "4.0.0",
           "4.0.1-SNAPSHOT",

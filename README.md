@@ -22,7 +22,7 @@ vitruv-cli -f projectFolder -m MyMetamodel.ecore,MyGenmodel.genmodel -r reaction
 
 The files are copied to `vsum/src/main/resources/constraints/` under their own names (files with the same name get a numeric suffix), so they are part of the VSUM jar. `VSUMExample` registers them with the `VitruvOclConstraintChecker` of VitruvOCL. Every context must name its metamodel, e.g. `context model::Component inv named: self.name.size() > 0`.
 
-Projects with constraints use the Vitruvius versions that provide the constraint SPI (framework 4.0.2-SNAPSHOT, VitruvOCL 0.1.0-SNAPSHOT), resolved from the Maven Central snapshots. Projects without constraints are generated as before.
+Projects with constraints use the Vitruvius versions that provide the constraint SPI and the constraint endpoints: Vitruv-Change 4.0.2-SNAPSHOT, framework 4.0.2-SNAPSHOT, Vitruv-Server 4.0.1-SNAPSHOT and [VitruviusOCL](https://github.com/vitruv-tools/VitruviusOCL) 0.1.0-SNAPSHOT (`tools.vitruv:tools.vitruv.vitruvocl.language`), resolved from the Maven Central snapshots; generated VSUMs need Java 21. Projects without constraints are generated as before.
 
 ### Validating the constraints of a running VSUM
 

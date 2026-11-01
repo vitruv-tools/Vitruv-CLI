@@ -109,8 +109,8 @@
   </#noparse>
 <#if versions.vitruvocl??>
       <dependency>
-        <groupId>tools.vitruv.dsls</groupId>
-        <artifactId>vitruvocl-language</artifactId>
+        <groupId>tools.vitruv</groupId>
+        <artifactId>tools.vitruv.vitruvocl.language</artifactId>
         <version><#noparse>${vitruvocl.version}</#noparse></version>
       </dependency>
 </#if>
