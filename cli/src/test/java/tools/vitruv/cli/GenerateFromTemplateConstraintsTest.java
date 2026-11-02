@@ -79,6 +79,19 @@ class GenerateFromTemplateConstraintsTest {
         .contains("throw new UncheckedIOException");
   }
 
+  @Test
+  void vsumExampleRunsWithoutInput() throws Exception {
+    String example =
+        generate(
+            "VSUMExample.java",
+            f -> generator.generateVsumExample(f, PACKAGE, List.of("model"), List.of()));
+
+    assertThat(example)
+        .contains("Runtime.getRuntime().addShutdownHook(", "while (scanner.hasNextLine())")
+        .contains("reader.setDaemon(true);")
+        .doesNotContain("while (!scanner.nextLine().equals(\"quit\"))");
+  }
+
   @FunctionalInterface
   private interface Generation {
     void run(File file) throws Exception;
