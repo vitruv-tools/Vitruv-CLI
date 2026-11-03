@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Writer;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -44,7 +45,8 @@ public class GenerateFromTemplate {
       throws IOException {
     FileUtils.createFile(filePath.getAbsolutePath());
     // Write output to file
-    try (Writer fileWriter = new FileWriter(filePath.getAbsolutePath(), false)) {
+    try (Writer fileWriter =
+        new FileWriter(filePath.getAbsolutePath(), StandardCharsets.UTF_8, false)) {
       template.process(data, fileWriter);
       fileWriter.flush();
       log.info("writing to " + filePath.getAbsolutePath());
