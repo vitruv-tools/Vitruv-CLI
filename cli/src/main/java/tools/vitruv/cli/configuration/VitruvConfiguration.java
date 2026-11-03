@@ -45,6 +45,9 @@ public class VitruvConfiguration {
   /** -- GETTER -- Returns the reaction file locations used by the CLI. */
   @Getter private final List<Path> reactionLocations = new ArrayList<>();
 
+  /** -- GETTER -- Returns the OCL constraint files of the project. */
+  @Getter private final List<ConstraintLocation> constraintLocations = new ArrayList<>();
+
   /**
    * Adds a metamodel location to the configuration.
    *
@@ -113,6 +116,36 @@ public class VitruvConfiguration {
     if (reactionLocations != null) {
       this.reactionLocations.addAll(reactionLocations);
     }
+  }
+
+  /**
+   * Sets the OCL constraint files of the project.
+   *
+   * @param constraintLocations the constraint files with distinct names
+   */
+  public void setConstraintLocations(List<ConstraintLocation> constraintLocations) {
+    this.constraintLocations.clear();
+    if (constraintLocations != null) {
+      this.constraintLocations.addAll(constraintLocations);
+    }
+  }
+
+  /**
+   * Returns the classpath resource names of the constraint files in the generated VSUM.
+   *
+   * @return the resource names in the order of the constraint files
+   */
+  public List<String> getConstraintResources() {
+    return constraintLocations.stream().map(ConstraintLocation::resourceName).toList();
+  }
+
+  /**
+   * Returns the versions of the Vitruvius artifacts the generated project uses.
+   *
+   * @return the versions, which depend on whether the project has constraints
+   */
+  public ProjectVersions getProjectVersions() {
+    return ProjectVersions.forProject(!constraintLocations.isEmpty());
   }
 
   /**

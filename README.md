@@ -9,6 +9,42 @@ Options:
 - u (--userinteractor): Specify the path to a specific user interactor, use the keyword 'default' to denote that you want to use a default user interactor without functionality.
 - pg (--precheck-genmodel): Precheck and standardize `.genmodel` files before running the CLI workflow.
 - apply (--apply): Apply detected `.genmodel` fixes immediately without interactive confirmation. Only relevant together with `-pg` / `--precheck-genmodel`.
+- c (--constraint): The path to an OCL constraint file (`.ocl`) that is built into the VSUM. Can be repeated.
+- cs (--constraints): The path to a directory whose `.ocl` files are built into the VSUM. Mutually exclusive with -c/--constraint.
+
+## Constraints
+
+OCL constraints are built into the generated VSUM with `-c` or `-cs`:
+
+```bash
+vitruv-cli -f projectFolder -m MyMetamodel.ecore,MyGenmodel.genmodel -r reactions.reactions -cs constraints
+```
+
+The files are copied to `vsum/src/main/resources/constraints/` under their own names (files with the same name get a numeric suffix), so they are part of the VSUM jar. `VSUMExample` registers them with the `VitruvOclConstraintChecker` of VitruvOCL. Every context must name its metamodel, e.g. `context model::Component inv named: self.name.size() > 0`.
+
+Projects with constraints use the Vitruvius versions that provide the constraint SPI and the constraint endpoints: Vitruv-Change 4.0.2-SNAPSHOT, framework 4.0.2-SNAPSHOT, Vitruv-Server 4.0.1-SNAPSHOT and [VitruviusOCL](https://github.com/vitruv-tools/VitruviusOCL) 0.1.0-SNAPSHOT (`tools.vitruv:tools.vitruv.vitruvocl.language`), resolved from the Maven Central snapshots; generated VSUMs need Java 21. Projects without constraints are generated as before.
+
+### Validating the constraints of a running VSUM
+
+The `validate` subcommand validates the constraints of a running VSUM through the REST API of its Vitruv server and lists the violating elements by their UUIDs:
+
+```bash
+vitruv-cli validate --url http://localhost:8080
+vitruv-cli validate --url http://localhost:8080 --id model::Component::named --id model::Link::valid
+```
+
+- `-u` / `--url`: URL of the Vitruv server (default `http://localhost:8080`)
+- `-i` / `--id`: id of a constraint to validate, can be repeated (default: all constraints)
+
+```
+[FAIL]  model::Component::named (CRITICAL): 1 violation
+        3f1c…-uuid model::Component in /model/a.model: Component has no name
+[PASS]  model::Link::valid
+
+2 constraints validated: 1 satisfied, 1 violated, 0 could not be checked
+```
+
+The exit code is `0` if all validated constraints are satisfied, `1` if a constraint is violated or could not be checked, and `2` if the arguments are invalid or the server could not be asked.
 
 ## GenModel Precheck
 

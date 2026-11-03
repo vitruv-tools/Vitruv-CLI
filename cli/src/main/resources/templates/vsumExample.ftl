@@ -17,29 +17,66 @@ import tools.vitruv.framework.views.ViewType;
 import tools.vitruv.framework.vsum.VirtualModel;
 import tools.vitruv.framework.remote.server.*;
 import java.util.Scanner;
+import java.util.concurrent.CountDownLatch;
 import java.io.IOException;
+<#if constraintResources?has_content>
+import java.io.UncheckedIOException;
+import tools.vitruv.dsls.vitruvocl.vitruv.VitruvOclConstraintChecker;
+</#if>
 
 /**
  * This class provides an example how to define and use a VSUM.
  */
 public class VSUMExample {
-  public static void main(String[] args) {
+  public static void main(String[] args) throws InterruptedException {
     try {
       VitruvServer server = new VitruvServer(VSUMExample::createDefaultVirtualModel);
       server.start();
-      Scanner scanner = new Scanner(System.in);
-      while (!scanner.nextLine().equals("quit")) {
-        
-      }
-      scanner.close();
-      server.stop();
+      CountDownLatch stopped = new CountDownLatch(1);
+      Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+        server.stop();
+        stopped.countDown();
+      }));
+      stopOnQuit();
+      stopped.await();
     } catch (IOException e) {
       System.out.println("Something went wrong " + e);
     }
   }
 
+  /**
+   * Stops the server when "quit" is entered. Without input, e.g. in a container or as a service,
+   * the server keeps running until it is stopped with Ctrl+C or a stop signal.
+   */
+  private static void stopOnQuit() {
+    Thread reader = new Thread(() -> {
+      Scanner scanner = new Scanner(System.in);
+      while (scanner.hasNextLine()) {
+        if (scanner.nextLine().equals("quit")) {
+          System.exit(0);
+        }
+      }
+    }, "quit-reader");
+    reader.setDaemon(true);
+    reader.start();
+  }
+
   private static VirtualModel createDefaultVirtualModel() {
     Collection<ViewType<?>> viewTypes = createDefaultViewTypes();
+<#if constraintResources?has_content>
+    try {
+      VirtualModel model = new VirtualModelBuilder()
+          .withStorageFolder(Path.of("vsumexample"))
+          .withUserInteractorForResultProvider(new TestUserInteraction.ResultProvider(new TestUserInteraction()))
+          .withChangePropagationSpecifications(new Model2Model2ChangePropagationSpecification()).withViewTypes(viewTypes)
+          .withConstraintChecker(VitruvOclConstraintChecker.fromClasspath(<#list constraintResources as resource>"${resource?j_string}"<#sep>, </#list>))
+          .buildAndInitialize();
+      getDefaultView(model);
+      return model;
+    } catch (IOException e) {
+      throw new UncheckedIOException("Could not initialize the virtual model", e);
+    }
+<#else>
     VirtualModel model = new VirtualModelBuilder()
         .withStorageFolder(Path.of("vsumexample"))
         .withUserInteractorForResultProvider(new TestUserInteraction.ResultProvider(new TestUserInteraction()))
@@ -47,6 +84,7 @@ public class VSUMExample {
         .buildAndInitialize();
       getDefaultView(model);
       return model;
+</#if>
   }
 
   private static View getDefaultView(VirtualModel vsum) {
