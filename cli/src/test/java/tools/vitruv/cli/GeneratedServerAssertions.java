@@ -45,11 +45,10 @@ final class GeneratedServerAssertions {
           Path.of(System.getProperty("java.home"), "bin", binary).toString(),
           "-jar", jar.toString(), Integer.toString(port))
           .directory(work.toFile()).redirectErrorStream(true).redirectOutput(log.toFile()).start();
-      try {
+      try (HttpClient client = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(1)).build()) {
         if (eof) {
           process.getOutputStream().close();
         }
-        HttpClient client = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(1)).build();
         URI base = URI.create("http://localhost:" + port);
         boolean ready = false;
         long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(30);
@@ -60,7 +59,9 @@ final class GeneratedServerAssertions {
             ready = true;
             break;
           } catch (java.io.IOException ignored) {
-            Thread.sleep(100);
+            if (process.waitFor(100, TimeUnit.MILLISECONDS)) {
+              break;
+            }
           }
         }
         assertThat(ready).withFailMessage("Generated server did not start:%n%s", Files.readString(log))
@@ -80,9 +81,8 @@ final class GeneratedServerAssertions {
           }
         }
         if (eof) {
-          Thread.sleep(1000);
-          assertThat(process.isAlive()).withFailMessage("Server exited on EOF:%n%s", Files.readString(log))
-              .isTrue();
+          assertThat(process.waitFor(1, TimeUnit.SECONDS))
+              .withFailMessage("Server exited on EOF:%n%s", Files.readString(log)).isFalse();
         } else {
           process.getOutputStream().write("quit\n".getBytes(StandardCharsets.UTF_8));
           process.getOutputStream().flush();

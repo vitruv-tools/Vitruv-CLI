@@ -128,7 +128,7 @@ class CLITest {
    */
   @Test
   @EnabledIfSystemProperty(named = "cli.e2e.constraints", matches = "true")
-  public void mainWithConstraints() throws Exception {
+  void mainWithConstraints() throws Exception {
     Path project = Path.of("target/constraints/");
     var virtualModel = new CLI().run(
         new String[] {
