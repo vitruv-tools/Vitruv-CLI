@@ -31,7 +31,7 @@ public record ProjectVersions(
   /** Versions of projects without constraints. */
   public static final ProjectVersions DEFAULT =
       new ProjectVersions(
-          "3.2.0", "3.2.3", "3.2.3", "3.2.3", "3.1.0", "3.2.3", null, "5.12.0", false);
+          "4.0.2", "4.0.1", "4.0.1", "4.0.1", "4.0.1", "4.0.0", null, "6.1.3", false);
 
   /**
    * Versions of projects with OCL constraints. The framework must provide the constraint SPI
