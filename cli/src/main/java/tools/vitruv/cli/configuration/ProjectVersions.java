@@ -31,24 +31,27 @@ public record ProjectVersions(
   /** Latest release of the Vitruv framework, Change and DSL artifacts. */
   private static final String VITRUV_RELEASE = "4.0.1";
 
-  /** First Vitruv 4 release, also the latest release of the Vitruv server. */
+  /** First Vitruv 4 release, used as the parent of projects with constraints. */
   private static final String VITRUV_4_0_0 = "4.0.0";
 
   /** Snapshot of the framework and Change artifacts that provides the constraint SPI. */
   private static final String CONSTRAINTS_SNAPSHOT = "4.0.2-SNAPSHOT";
 
-  /** Versions of projects without constraints. */
+  /** Server with the Optional-returning ProjectMarker API and constraint endpoints. */
+  private static final String SERVER_SNAPSHOT = "4.0.1-SNAPSHOT";
+
+  /** Compatible versions of projects without constraints; the server requires the snapshot SPI. */
   public static final ProjectVersions DEFAULT =
       new ProjectVersions(
           "4.0.2",
+          CONSTRAINTS_SNAPSHOT,
+          CONSTRAINTS_SNAPSHOT,
           VITRUV_RELEASE,
           VITRUV_RELEASE,
-          VITRUV_RELEASE,
-          VITRUV_RELEASE,
-          VITRUV_4_0_0,
+          SERVER_SNAPSHOT,
           null,
           "6.1.3",
-          false);
+          true);
 
   /**
    * Versions of projects with OCL constraints. The framework must provide the constraint SPI
@@ -59,9 +62,9 @@ public record ProjectVersions(
           VITRUV_4_0_0,
           CONSTRAINTS_SNAPSHOT,
           CONSTRAINTS_SNAPSHOT,
-          VITRUV_4_0_0,
-          VITRUV_4_0_0,
-          "4.0.1-SNAPSHOT",
+          VITRUV_RELEASE,
+          VITRUV_RELEASE,
+          SERVER_SNAPSHOT,
           "0.1.0-SNAPSHOT",
           "6.1.0",
           true);

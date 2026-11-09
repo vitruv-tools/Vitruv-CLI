@@ -8,7 +8,9 @@ import java.util.List;
 
 import java.nio.file.Path;
 import java.util.function.Consumer;
-import mir.reactions.model2Model2.Model2Model2ChangePropagationSpecification;
+<#list specifications as specification>
+import ${specification};
+</#list>
 import tools.vitruv.change.testutils.TestUserInteraction;
 import tools.vitruv.framework.views.CommittableView;
 import tools.vitruv.framework.views.View;
@@ -28,9 +30,11 @@ import tools.vitruv.dsls.vitruvocl.vitruv.VitruvOclConstraintChecker;
  * This class provides an example how to define and use a VSUM.
  */
 public class VSUMExample {
+  /** Starts the server; the optional first argument is the HTTP port (default 8080). */
   public static void main(String[] args) throws InterruptedException {
     try {
-      VitruvServer server = new VitruvServer(VSUMExample::createDefaultVirtualModel);
+      int port = args.length == 0 ? 8080 : Integer.parseInt(args[0]);
+      VitruvServer server = new VitruvServer(VSUMExample::createDefaultVirtualModel, port);
       server.start();
       CountDownLatch stopped = new CountDownLatch(1);
       Runtime.getRuntime().addShutdownHook(new Thread(() -> {
@@ -67,7 +71,7 @@ public class VSUMExample {
       VirtualModel model = new VirtualModelBuilder()
           .withStorageFolder(Path.of("vsumexample"))
           .withUserInteractorForResultProvider(new TestUserInteraction.ResultProvider(new TestUserInteraction()))
-          .withChangePropagationSpecifications(new Model2Model2ChangePropagationSpecification()).withViewTypes(viewTypes)
+          .withChangePropagationSpecifications(<#list specifications as specification>new ${specification?keep_after_last(".")}()<#sep>, </#list>).withViewTypes(viewTypes)
 <#if constraintResources?has_content>
           .withConstraintChecker(VitruvOclConstraintChecker.fromClasspath(<#list constraintResources as resource>"${resource?j_string}"<#sep>, </#list>))
 </#if>

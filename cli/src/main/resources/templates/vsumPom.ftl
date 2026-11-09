@@ -26,7 +26,7 @@
         </descriptorRefs>
         <archive>
           <manifest>
-            <mainClass>tools.vitruv.methodologisttemplate.vsum.VSUMExample</mainClass>
+            <mainClass>${packageName}.vsum.VSUMExample</mainClass>
           </manifest>
         </archive>
       </configuration>

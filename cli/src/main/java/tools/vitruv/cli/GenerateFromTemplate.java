@@ -115,19 +115,25 @@ public class GenerateFromTemplate {
    *
    * @param filePath            The file path to write the vsum example file to.
    * @param packageName         The package name from the genmodel.
-   * @param models              The names of the metamodels.
+   * @param models              The names of the metamodels to create view types for.
+   * @param specifications      The fully qualified names of the change propagation specifications.
    * @param constraintResources The classpath resource names of the OCL constraint files to
    *                            register at the VSUM, empty if there are none.
    * @throws IOException If the file cannot be written.
    */
   public void generateVsumExample(
-      File filePath, String packageName, List<String> models, List<String> constraintResources)
+      File filePath,
+      String packageName,
+      List<String> models,
+      List<String> specifications,
+      List<String> constraintResources)
       throws IOException {
     Configuration cfg = getConfiguration();
 
     Map<String, Object> data = new HashMap<>();
     data.put("packageName", packageName.trim());
     data.put("models", models);
+    data.put("specifications", specifications);
     data.put("constraintResources", constraintResources);
 
     Template template = null;
@@ -232,13 +238,16 @@ public class GenerateFromTemplate {
    *
    * @param filePath    The file path to write the vsum test file to.
    * @param packageName The package name from the genmodel.
+   * @param specifications The fully qualified names of the change propagation specifications.
    * @throws IOException If the file cannot be written.
    */
-  public void generateVsumTest(File filePath, String packageName) throws IOException {
+  public void generateVsumTest(File filePath, String packageName, List<String> specifications)
+      throws IOException {
     Configuration cfg = getConfiguration();
 
     Map<String, Object> data = new HashMap<>();
     data.put("packageName", packageName.trim());
+    data.put("specifications", specifications);
 
     Template template = null;
     try {

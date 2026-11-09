@@ -24,7 +24,7 @@ class GenerateFromTemplateConstraintsTest {
   }
 
   @Test
-  void projectsWithoutConstraintsKeepTheirVersions() throws Exception {
+  void projectsWithoutConstraintsUseCompatibleVersions() throws Exception {
     String rootPom =
         generate("pom.xml", f -> generator.generateRootPom(f, PACKAGE, ProjectVersions.DEFAULT));
     String vsumPom =
@@ -32,13 +32,14 @@ class GenerateFromTemplateConstraintsTest {
     String example =
         generate(
             "VSUMExample.java",
-            f -> generator.generateVsumExample(f, PACKAGE, List.of("model"), List.of()));
+            f -> generator.generateVsumExample(f, PACKAGE, List.of("model"), List.of(), List.of()));
 
     assertThat(rootPom)
-        .contains("<version>4.0.2</version>", "<vitruv.version>4.0.1</vitruv.version>")
+        .contains("<version>4.0.2</version>", "<vitruv.version>4.0.2-SNAPSHOT</vitruv.version>")
         .contains("<vitruv-reactions-language.version>4.0.1</vitruv-reactions-language.version>")
         .contains("<junit.version>6.1.3</junit.version>")
-        .doesNotContain("vitruvocl", "central-snapshots");
+        .contains("<vitruv-server.version>4.0.1-SNAPSHOT</vitruv-server.version>", "central-snapshots")
+        .doesNotContain("vitruvocl");
     assertThat(vsumPom).doesNotContain("vitruvocl");
     assertThat(example)
         .doesNotContain("VitruvOclConstraintChecker", "withConstraintChecker")
@@ -62,6 +63,7 @@ class GenerateFromTemplateConstraintsTest {
                     f,
                     PACKAGE,
                     List.of("model"),
+                    List.of(),
                     List.of("constraints/prices.ocl", "constraints/Größen \"v1\".ocl")));
 
     assertThat(rootPom)
@@ -84,7 +86,7 @@ class GenerateFromTemplateConstraintsTest {
     String example =
         generate(
             "VSUMExample.java",
-            f -> generator.generateVsumExample(f, PACKAGE, List.of("model"), List.of()));
+            f -> generator.generateVsumExample(f, PACKAGE, List.of("model"), List.of(), List.of()));
 
     assertThat(example)
         .contains("Runtime.getRuntime().addShutdownHook(", "while (scanner.hasNextLine())")
