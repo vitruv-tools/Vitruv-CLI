@@ -11,6 +11,7 @@ import java.nio.file.StandardCopyOption;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
+import java.util.jar.JarFile;
 import java.util.stream.Stream;
 import org.apache.commons.cli.ParseException;
 import org.eclipse.emf.common.util.URI;
@@ -21,6 +22,7 @@ import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.xmi.impl.XMIResourceFactoryImpl;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import tools.vitruv.change.utils.ProjectMarker;
@@ -117,6 +119,48 @@ class CLITest {
       assertRootIsPropagated(vsum.get(), folder, MODEL2_FACTORY, "Root", "model2", "System");
     } else {
       assertRootIsPropagated(vsum.get(), folder, MODEL_FACTORY, "System", "model", "Root");
+    }
+  }
+
+  /**
+   * Builds a project with constraints. Needs the Vitruvius snapshots with the constraint SPI and
+   * VitruvOCL, so it only runs with {@code -Dcli.e2e.constraints=true}.
+   */
+  @Test
+  @EnabledIfSystemProperty(named = "cli.e2e.constraints", matches = "true")
+  public void mainWithConstraints() throws Exception {
+    Path project = Path.of("target/constraints/");
+    var virtualModel = new CLI().run(
+        new String[] {
+          "-m",
+          "src/test/resources/model/model.ecore,src/test/resources/model/model.genmodel;src/test/resources/model/model2.ecore,src/test/resources/model/model2.genmodel",
+          "-f",
+          project.toString(),
+          "-u",
+          "default",
+          "-r",
+          "src/test/resources/consistency/templateReactions.reactions",
+          "-cs",
+          "src/test/resources/constraints"
+        });
+
+    assertThat(virtualModel).isPresent();
+    assertGeneratedVsumTestWasExecuted(project);
+    GeneratedServerAssertions.assertStartsAndStops(project, "tools.vitruv.methodologisttemplate", true);
+    assertThat(project.resolve("vsum/src/main/resources/constraints/components.ocl")).exists();
+    try (Stream<Path> files = Files.list(project.resolve("vsum/target"))) {
+      Path jar =
+          files
+              .filter(file -> file.getFileName().toString().endsWith("-jar-with-dependencies.jar"))
+              .findFirst()
+              .orElseThrow();
+      try (JarFile jarFile = new JarFile(jar.toFile())) {
+        assertThat(jarFile.getEntry("constraints/components.ocl")).isNotNull();
+        assertThat(
+                jarFile.getEntry(
+                    "tools/vitruv/dsls/vitruvocl/vitruv/VitruvOclConstraintChecker.class"))
+            .isNotNull();
+      }
     }
   }
 

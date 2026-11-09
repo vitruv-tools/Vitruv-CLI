@@ -7,6 +7,7 @@ import java.nio.file.Path;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import tools.vitruv.cli.configuration.ProjectVersions;
 import tools.vitruv.cli.exceptions.MissingModelException;
 
 class GenerateFromTemplateTest {
@@ -22,9 +23,9 @@ class GenerateFromTemplateTest {
 
   @Test
   void generateRootPom_shouldFail_whenPackageNameIsMissing() {
-    assertThatThrownBy(() -> generator.generateRootPom(tempDir.resolve("pom.xml").toFile(), null))
+    assertThatThrownBy(() -> generator.generateRootPom(tempDir.resolve("pom.xml").toFile(), null, ProjectVersions.DEFAULT))
         .isInstanceOf(MissingModelException.class);
-    assertThatThrownBy(() -> generator.generateRootPom(tempDir.resolve("pom.xml").toFile(), ""))
+    assertThatThrownBy(() -> generator.generateRootPom(tempDir.resolve("pom.xml").toFile(), "", ProjectVersions.DEFAULT))
         .isInstanceOf(MissingModelException.class);
   }
 
@@ -35,13 +36,15 @@ class GenerateFromTemplateTest {
     Path modelPom = tempDir.resolve("model/pom.xml");
     Path consistencyPom = tempDir.resolve("consistency/pom.xml");
 
-    generator.generateRootPom(rootPom.toFile(), PACKAGE_NAME);
-    generator.generateVsumPom(vsumPom.toFile(), PACKAGE_NAME);
+    generator.generateRootPom(rootPom.toFile(), PACKAGE_NAME, ProjectVersions.DEFAULT);
+    generator.generateVsumPom(vsumPom.toFile(), PACKAGE_NAME, ProjectVersions.DEFAULT);
     generator.generateModelPom(modelPom.toFile(), PACKAGE_NAME);
     generator.generateConsistencyPom(consistencyPom.toFile(), PACKAGE_NAME);
 
     assertThat(rootPom).content().contains("<artifactId>my.example</artifactId>");
-    assertThat(vsumPom).content().contains("<artifactId>my.example.vsum</artifactId>");
+    assertThat(vsumPom).content()
+        .contains("<artifactId>my.example.vsum</artifactId>")
+        .contains("<mainClass>my.example.vsum.VSUMExample</mainClass>");
     assertThat(modelPom).content().contains("<artifactId>my.example.model</artifactId>");
     assertThat(consistencyPom)
         .content()
@@ -54,7 +57,7 @@ class GenerateFromTemplateTest {
     Path example = tempDir.resolve("VSUMExample.java");
 
     generator.generateVsumExample(
-        example.toFile(), PACKAGE_NAME, List.of("first", "second"), SPECIFICATIONS);
+        example.toFile(), PACKAGE_NAME, List.of("first", "second"), SPECIFICATIONS, List.of());
 
     assertThat(example)
         .content()

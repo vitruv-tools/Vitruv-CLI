@@ -20,6 +20,8 @@ import lombok.extern.slf4j.Slf4j;
 import tools.vitruv.cli.options.ApplyOption;
 import tools.vitruv.cli.configuration.VitruvConfiguration;
 import tools.vitruv.cli.exceptions.MissingModelException;
+import tools.vitruv.cli.options.ConstraintOption;
+import tools.vitruv.cli.options.ConstraintsOption;
 import tools.vitruv.cli.options.FolderOption;
 import tools.vitruv.cli.options.GenmodelPrecheckOption;
 import tools.vitruv.cli.options.MetamodelOption;
@@ -27,6 +29,7 @@ import tools.vitruv.cli.options.ReactionOption;
 import tools.vitruv.cli.options.ReactionsOption;
 import tools.vitruv.cli.options.UserInteractorOption;
 import tools.vitruv.cli.options.VitruvCLIOption;
+import tools.vitruv.cli.validate.ValidateCommand;
 import tools.vitruv.framework.vsum.VirtualModel;
 import tools.vitruv.framework.vsum.VirtualModelBuilder;
 
@@ -45,6 +48,11 @@ public class CLI {
    * @param args The command line arguments.
    */
   public static void main(String[] args) {
+    if (args.length > 0 && ValidateCommand.NAME.equals(args[0])) {
+      System.exit(
+          new ValidateCommand(System.out, System.err)
+              .run(Arrays.copyOfRange(args, 1, args.length)));
+    }
     new CLI().parseCLI(args);
   }
 
@@ -125,6 +133,8 @@ public class CLI {
     ReactionsOption reactionsOpt = new ReactionsOption();
     GenmodelPrecheckOption precheckOpt = new GenmodelPrecheckOption();
     ApplyOption applyOpt = new ApplyOption();
+    ConstraintOption constraintOpt = new ConstraintOption();
+    ConstraintsOption constraintsOpt = new ConstraintsOption();
 
     if (precheckRequested) {
       folderOpt.setRequired(false);
@@ -141,22 +151,37 @@ public class CLI {
     options.addOption(reactionsOpt);
     options.addOption(precheckOpt);
     options.addOption(applyOpt);
+    options.addOption(constraintOpt);
+    options.addOption(constraintsOpt);
 
     CommandLine line = parser.parse(options, args);
     return new ParsedCli(
-        line, metamodelOpt, folderOpt, userOpt, reactionOpt, reactionsOpt, precheckOpt, applyOpt);
+        line,
+        metamodelOpt,
+        folderOpt,
+        userOpt,
+        reactionOpt,
+        reactionsOpt,
+        precheckOpt,
+        applyOpt,
+        constraintOpt,
+        constraintsOpt);
   }
 
   /**
-   * Validates mutually exclusive reaction options.
+   * Validates mutually exclusive reaction and constraint options.
    *
    * @param line the parsed command line
-   * @throws ParseException if both reaction options are provided
+   * @throws ParseException if both reaction or both constraint options are provided
    */
   private void validateReactionOptions(CommandLine line) throws ParseException {
     if (line.hasOption("r") && line.hasOption("rs")) {
       throw new ParseException(
           "Options -r/--reaction and -rs/--reactions-source are mutually exclusive.");
+    }
+    if (line.hasOption("c") && line.hasOption("cs")) {
+      throw new ParseException(
+          "Options -c/--constraint and -cs/--constraints are mutually exclusive.");
     }
   }
 
@@ -176,6 +201,8 @@ public class CLI {
     prepareOptionIfPresent(line, "u", parsedCli.userOpt(), configuration);
     prepareOptionIfPresent(line, "r", parsedCli.reactionOpt(), configuration);
     prepareOptionIfPresent(line, "rs", parsedCli.reactionsOpt(), configuration);
+    prepareOptionIfPresent(line, "c", parsedCli.constraintOpt(), configuration);
+    prepareOptionIfPresent(line, "cs", parsedCli.constraintsOpt(), configuration);
   }
 
   /**
@@ -314,7 +341,9 @@ public class CLI {
       ReactionOption reactionOpt,
       ReactionsOption reactionsOpt,
       GenmodelPrecheckOption precheckOpt,
-      ApplyOption applyOpt) {}
+      ApplyOption applyOpt,
+      ConstraintOption constraintOpt,
+      ConstraintsOption constraintsOpt) {}
 
   private static boolean hasArg(String[] args, String needle) {
     for (String a : args) {
@@ -330,7 +359,8 @@ public class CLI {
 
     generateFromTemplate.generateRootPom(
         new File((configuration.getLocalPath() + "/pom.xml").trim()),
-        configuration.getPackageName());
+        configuration.getPackageName(),
+        configuration.getProjectVersions());
     log.info("Generating root pom");
 
     generateFromTemplate.generateConsistencyPom(
@@ -345,7 +375,8 @@ public class CLI {
 
     generateFromTemplate.generateVsumPom(
         new File((configuration.getLocalPath() + "/vsum/pom.xml").trim()),
-        configuration.getPackageName());
+        configuration.getPackageName(),
+        configuration.getProjectVersions());
     log.info("Generating vsum pom");
 
     generateFromTemplate.generateP2WrappersPom(
@@ -373,7 +404,8 @@ public class CLI {
         new File((configuration.getLocalPath() + "/vsum/src/main/java/VSUMExample.java").trim()),
         configuration.getPackageName(),
         configuration.getModelNames(),
-        configuration.getChangePropagationSpecificationNames());
+        configuration.getChangePropagationSpecificationNames(),
+        configuration.getConstraintResources());
     log.info("Generating vsum example java class");
 
     generateFromTemplate.generateVsumTest(

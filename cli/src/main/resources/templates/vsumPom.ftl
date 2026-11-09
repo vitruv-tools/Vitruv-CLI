@@ -26,7 +26,7 @@
         </descriptorRefs>
         <archive>
           <manifest>
-            <mainClass>tools.vitruv.methodologisttemplate.vsum.VSUMExample</mainClass>
+            <mainClass>${packageName}.vsum.VSUMExample</mainClass>
           </manifest>
         </archive>
       </configuration>
@@ -43,12 +43,14 @@
   </plugins>
 </build>
 
-<properties>
-  <vitruv.version>3.2.3</vitruv.version>
-</properties>
-
-
 <dependencies>
+<#if versions.vitruvocl??>
+  <!-- OCL constraints of the project, registered in VSUMExample -->
+  <dependency>
+    <groupId>tools.vitruv</groupId>
+    <artifactId>tools.vitruv.vitruvocl.language</artifactId>
+  </dependency>
+</#if>
 <!-- project dependencies -->
 <dependency>
   <#noparse>
@@ -68,7 +70,6 @@
   <dependency>
     <groupId>tools.vitruv</groupId>
     <artifactId>tools.vitruv.server.remote</artifactId>
-    <version>${vitruv.version}</version>
   </dependency>
 
   <!-- Vitruvius dependencies -->

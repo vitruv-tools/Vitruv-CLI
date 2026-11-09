@@ -95,17 +95,17 @@
         <dependency>
             <groupId>tools.vitruv</groupId>
             <artifactId>tools.vitruv.dsls.reactions.language</artifactId>
-            <version>${vitruv.version}</version>
+            <version>${vitruv-reactions-language.version}</version>
         </dependency>
         <dependency>
             <groupId>tools.vitruv</groupId>
             <artifactId>tools.vitruv.dsls.reactions.runtime</artifactId>
-            <version>${vitruv.version}</version>
+            <version>${vitruv-reactions-language.version}</version>
         </dependency>
         <dependency>
             <groupId>tools.vitruv</groupId>
             <artifactId>tools.vitruv.dsls.common</artifactId>
-            <version>${vitruv.version}</version>
+            <version>${vitruv-reactions-language.version}</version>
         </dependency>
         <dependency>
         <groupId>${project.groupId}</groupId>
