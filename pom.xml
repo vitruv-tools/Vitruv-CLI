@@ -8,12 +8,12 @@
     <parent>
         <groupId>tools.vitruv</groupId>
         <artifactId>parent</artifactId>
-        <version>3.3.2</version>
+        <version>4.0.2</version>
     </parent>
 
     <!-- Project Information -->
     <artifactId>tools.vitruv.cli</artifactId>
-    <version>3.2.4-SNAPSHOT</version>
+    <version>4.0.2-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <name>Vitruv CLI</name>
@@ -42,9 +42,9 @@
     </modules>
 
     <properties>
-        <vitruv.version>3.2.3</vitruv.version>
-        <vitruv-change.version>3.2.4-SNAPSHOT</vitruv-change.version>
-        <vitruv-dsls.version>3.2.3</vitruv-dsls.version>
+        <vitruv.version>4.0.2</vitruv.version>
+        <vitruv-change.version>4.0.2</vitruv-change.version>
+        <vitruv-dsls.version>4.0.2</vitruv-dsls.version>
         <sonar.host.url>https://sonarcloud.io</sonar.host.url>
         <sonar.organization>vitruv-tools</sonar.organization>
         <sonar.projectKey>vitruv-tools_Vitruv-CLI</sonar.projectKey>
@@ -229,22 +229,22 @@
             <dependency>
                 <groupId>org.junit.jupiter</groupId>
                 <artifactId>junit-jupiter-api</artifactId>
-                <version>5.11.4</version>
+                <version>6.1.3</version>
             </dependency>
             <dependency>
                 <groupId>org.junit.jupiter</groupId>
                 <artifactId>junit-jupiter-params</artifactId>
-                <version>5.11.4</version>
+                <version>6.1.3</version>
             </dependency>
             <dependency>
                 <groupId>org.junit.platform</groupId>
                 <artifactId>junit-platform-commons</artifactId>
-                <version>1.11.4</version>
+                <version>6.1.3</version>
             </dependency>
             <dependency>
                 <groupId>org.junit.platform</groupId>
                 <artifactId>junit-platform-launcher</artifactId>
-                <version>1.11.4</version>
+                <version>6.1.3</version>
             </dependency>
             <dependency>
                 <groupId>org.mockito</groupId>

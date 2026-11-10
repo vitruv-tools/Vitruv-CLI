@@ -35,9 +35,9 @@ class GenerateFromTemplateConstraintsTest {
             f -> generator.generateVsumExample(f, PACKAGE, List.of("model"), List.of()));
 
     assertThat(rootPom)
-        .contains("<version>3.2.0</version>", "<vitruv.version>3.2.3</vitruv.version>")
-        .contains("<vitruv-reactions-language.version>3.1.0</vitruv-reactions-language.version>")
-        .contains("<junit.version>5.12.0</junit.version>")
+        .contains("<version>4.0.2</version>", "<vitruv.version>4.0.2</vitruv.version>")
+        .contains("<vitruv-reactions-language.version>4.0.2</vitruv-reactions-language.version>")
+        .contains("<junit.version>6.1.3</junit.version>")
         .doesNotContain("vitruvocl", "central-snapshots");
     assertThat(vsumPom).doesNotContain("vitruvocl");
     assertThat(example)
@@ -65,9 +65,9 @@ class GenerateFromTemplateConstraintsTest {
                     List.of("constraints/prices.ocl", "constraints/Größen \"v1\".ocl")));
 
     assertThat(rootPom)
-        .contains("<version>4.0.0</version>", "<vitruv.version>4.0.2-SNAPSHOT</vitruv.version>")
+        .contains("<version>4.0.2</version>", "<vitruv.version>4.0.2</vitruv.version>")
         .contains("<vitruvocl.version>0.1.0-SNAPSHOT</vitruvocl.version>")
-        .contains("<junit.version>6.1.0</junit.version>")
+        .contains("<junit.version>6.1.3</junit.version>")
         .contains("<artifactId>tools.vitruv.vitruvocl.language</artifactId>", "<version>${vitruvocl.version}</version>")
         .contains("central-snapshots");
     assertThat(vsumPom).contains("<artifactId>tools.vitruv.vitruvocl.language</artifactId>");
