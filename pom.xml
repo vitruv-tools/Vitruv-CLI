@@ -45,6 +45,7 @@
         <vitruv.version>4.0.2</vitruv.version>
         <vitruv-change.version>4.0.2</vitruv-change.version>
         <vitruv-dsls.version>4.0.2</vitruv-dsls.version>
+        <vitruv-server.version>4.0.2</vitruv-server.version>
         <sonar.host.url>https://sonarcloud.io</sonar.host.url>
         <sonar.organization>vitruv-tools</sonar.organization>
         <sonar.projectKey>vitruv-tools_Vitruv-CLI</sonar.projectKey>
@@ -122,19 +123,19 @@
             <dependency>
                 <groupId>tools.vitruv</groupId>
                 <artifactId>tools.vitruv.change.testutils</artifactId>
-                <version>{vitruv-change.version}</version>
+                <version>${vitruv-change.version}</version>
             </dependency>
             <dependency>
                 <groupId>tools.vitruv</groupId>
                 <artifactId>tools.vitruv.server.remote</artifactId>
-                <version>${vitruv.version}</version>
+                <version>${vitruv-server.version}</version>
             </dependency>
 
             <!-- Test cases -->
             <dependency>
                 <groupId>org.mockito</groupId>
                 <artifactId>mockito-junit-jupiter</artifactId>
-                <version>5.20.0</version>
+                <version>5.24.0</version>
                 <scope>test</scope>
             </dependency>
             <dependency>
@@ -148,78 +149,78 @@
             <dependency>
                 <groupId>com.fasterxml.jackson.core</groupId>
                 <artifactId>jackson-databind</artifactId>
-                <version>2.18.2</version>
+                <version>2.23.0</version>
             </dependency>
             <dependency>
                 <groupId>com.fasterxml.jackson.core</groupId>
                 <artifactId>jackson-core</artifactId>
-                <version>2.18.6</version>
+                <version>2.23.0</version>
             </dependency>
             <dependency>
                 <groupId>com.google.guava</groupId>
                 <artifactId>guava</artifactId>
-                <version>33.4.0-jre</version>
+                <version>33.8.0-jre</version>
             </dependency>
             <dependency>
                 <groupId>io.micrometer</groupId>
                 <artifactId>micrometer-core</artifactId>
-                <version>1.14.3</version>
+                <version>1.17.2</version>
             </dependency>
             <dependency>
                 <groupId>org.apache.logging.log4j</groupId>
                 <artifactId>log4j-core</artifactId>
-                <version>2.25.4</version>
+                <version>2.26.1</version>
             </dependency>
             <dependency>
                 <groupId>org.eclipse.emf</groupId>
                 <artifactId>org.eclipse.emf.common</artifactId>
-                <version>2.40.0</version>
+                <version>2.46.0</version>
             </dependency>
             <dependency>
                 <groupId>org.eclipse.emf</groupId>
                 <artifactId>org.eclipse.emf.codegen.ecore</artifactId>
-                <version>2.21.0</version>
+                <version>2.47.0</version>
             </dependency>
             <dependency>
                 <groupId>org.eclipse.emf</groupId>
                 <artifactId>org.eclipse.emf.ecore</artifactId>
-                <version>2.39.0</version>
+                <version>2.43.0</version>
             </dependency>
             <dependency>
                 <groupId>org.eclipse.emf</groupId>
                 <artifactId>org.eclipse.emf.ecore.xmi</artifactId>
-                <version>2.39.0</version>
+                <version>2.41.0</version>
             </dependency>
             <dependency>
                 <groupId>org.eclipse.emfcloud</groupId>
                 <artifactId>emfjson-jackson</artifactId>
-                <version>2.2.0</version>
+                <version>2.3.0</version>
             </dependency>
             <dependency>
                 <groupId>org.eclipse.platform</groupId>
                 <artifactId>org.eclipse.core.runtime</artifactId>
-                <version>3.32.0</version>
+                <version>3.35.0</version>
             </dependency>
             <!-- required to mitigate Eclipse dependency signing problems -->
             <dependency>
                 <groupId>org.eclipse.platform</groupId>
                 <artifactId>org.eclipse.equinox.common</artifactId>
-                <version>3.19.200</version>
+                <version>3.21.0</version>
             </dependency>
             <dependency>
                 <groupId>org.eclipse.platform</groupId>
                 <artifactId>org.eclipse.equinox.registry</artifactId>
-                <version>3.12.200</version>
+                <version>3.12.600</version>
             </dependency>
             <dependency>
                 <groupId>org.eclipse.xtend</groupId>
                 <artifactId>org.eclipse.xtend.lib</artifactId>
-                <version>2.39.0</version>
+                <version>2.44.0</version>
             </dependency>
             <dependency>
                 <groupId>org.eclipse.xtext</groupId>
                 <artifactId>org.eclipse.xtext.xbase.lib</artifactId>
-                <version>2.39.0</version>
+                <version>2.44.0</version>
             </dependency>
             <dependency>
                 <groupId>org.hamcrest</groupId>
@@ -249,17 +250,17 @@
             <dependency>
                 <groupId>org.mockito</groupId>
                 <artifactId>mockito-core</artifactId>
-                <version>5.15.2</version>
+                <version>5.24.0</version>
             </dependency>
             <dependency>
                 <groupId>org.freemarker</groupId>
                 <artifactId>freemarker</artifactId>
-                <version>2.3.31</version>
+                <version>2.3.35</version>
             </dependency>
             <dependency>
                 <groupId>org.projectlombok</groupId>
                 <artifactId>lombok</artifactId>
-                <version>1.18.30</version>
+                <version>1.18.48</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
