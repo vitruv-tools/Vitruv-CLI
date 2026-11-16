@@ -120,12 +120,12 @@
       <dependency>
         <groupId>org.eclipse.emf</groupId>
         <artifactId>org.eclipse.emf.common</artifactId>
-        <version>2.42.0</version>
+        <version>2.46.0</version>
       </dependency>
       <dependency>
         <groupId>org.eclipse.emf</groupId>
         <artifactId>org.eclipse.emf.ecore</artifactId>
-        <version>2.39.0</version>
+        <version>2.43.0</version>
       </dependency>
       <dependency>
         <groupId>org.junit.jupiter</groupId>
