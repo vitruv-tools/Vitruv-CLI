@@ -28,30 +28,21 @@ public record ProjectVersions(
     String junit,
     boolean snapshots) {
 
-  /** Latest release of the Vitruv framework, Change and DSL artifacts. */
-  private static final String VITRUV_RELEASE = "4.0.1";
+  /** Latest release of the Vitruv framework, Change, DSL, server and VitruvOCL artifacts. */
+  private static final String VITRUV_RELEASE = "4.0.2";
 
-  /** First Vitruv 4 release, used as the parent of projects with constraints. */
-  private static final String VITRUV_4_0_0 = "4.0.0";
-
-  /** Snapshot of the framework and Change artifacts that provides the constraint SPI. */
-  private static final String CONSTRAINTS_SNAPSHOT = "4.0.2-SNAPSHOT";
-
-  /** Server with the Optional-returning ProjectMarker API and constraint endpoints. */
-  private static final String SERVER_SNAPSHOT = "4.0.1-SNAPSHOT";
-
-  /** Compatible versions of projects without constraints; the server requires the snapshot SPI. */
+  /** Versions of projects without constraints. */
   public static final ProjectVersions DEFAULT =
       new ProjectVersions(
           "4.0.2",
-          CONSTRAINTS_SNAPSHOT,
-          CONSTRAINTS_SNAPSHOT,
           VITRUV_RELEASE,
           VITRUV_RELEASE,
-          SERVER_SNAPSHOT,
+          VITRUV_RELEASE,
+          VITRUV_RELEASE,
+          VITRUV_RELEASE,
           null,
           "6.1.3",
-          true);
+          false);
 
   /**
    * Versions of projects with OCL constraints. The framework must provide the constraint SPI
@@ -59,15 +50,15 @@ public record ProjectVersions(
    */
   public static final ProjectVersions WITH_CONSTRAINTS =
       new ProjectVersions(
-          VITRUV_4_0_0,
-          CONSTRAINTS_SNAPSHOT,
-          CONSTRAINTS_SNAPSHOT,
+          "4.0.2",
           VITRUV_RELEASE,
           VITRUV_RELEASE,
-          SERVER_SNAPSHOT,
-          "0.1.0-SNAPSHOT",
-          "6.1.0",
-          true);
+          VITRUV_RELEASE,
+          VITRUV_RELEASE,
+          VITRUV_RELEASE,
+          VITRUV_RELEASE,
+          "6.1.3",
+          false);
 
   /**
    * Returns the versions for a project with or without constraints.

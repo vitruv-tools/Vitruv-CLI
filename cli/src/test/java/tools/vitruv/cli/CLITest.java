@@ -123,8 +123,8 @@ class CLITest {
   }
 
   /**
-   * Builds a project with constraints. Needs the Vitruvius snapshots with the constraint SPI and
-   * VitruvOCL, so it only runs with {@code -Dcli.e2e.constraints=true}.
+   * Builds a project with constraints using Vitruvius and VitruvOCL 4.0.2. Runs with
+   * {@code -Dcli.e2e.constraints=true}.
    */
   @Test
   @EnabledIfSystemProperty(named = "cli.e2e.constraints", matches = "true")

@@ -35,11 +35,11 @@ class GenerateFromTemplateConstraintsTest {
             f -> generator.generateVsumExample(f, PACKAGE, List.of("model"), List.of(), List.of()));
 
     assertThat(rootPom)
-        .contains("<version>4.0.2</version>", "<vitruv.version>4.0.2-SNAPSHOT</vitruv.version>")
-        .contains("<vitruv-reactions-language.version>4.0.1</vitruv-reactions-language.version>")
+        .contains("<version>4.0.2</version>", "<vitruv.version>4.0.2</vitruv.version>")
+        .contains("<vitruv-reactions-language.version>4.0.2</vitruv-reactions-language.version>")
         .contains("<junit.version>6.1.3</junit.version>")
-        .contains("<vitruv-server.version>4.0.1-SNAPSHOT</vitruv-server.version>", "central-snapshots")
-        .doesNotContain("vitruvocl");
+        .contains("<vitruv-server.version>4.0.2</vitruv-server.version>")
+        .doesNotContain("vitruvocl", "central-snapshots");
     assertThat(vsumPom).doesNotContain("vitruvocl");
     assertThat(example)
         .doesNotContain("VitruvOclConstraintChecker", "withConstraintChecker")
@@ -67,11 +67,11 @@ class GenerateFromTemplateConstraintsTest {
                     List.of("constraints/prices.ocl", "constraints/Größen \"v1\".ocl")));
 
     assertThat(rootPom)
-        .contains("<version>4.0.0</version>", "<vitruv.version>4.0.2-SNAPSHOT</vitruv.version>")
-        .contains("<vitruvocl.version>0.1.0-SNAPSHOT</vitruvocl.version>")
-        .contains("<junit.version>6.1.0</junit.version>")
+        .contains("<version>4.0.2</version>", "<vitruv.version>4.0.2</vitruv.version>")
+        .contains("<vitruvocl.version>4.0.2</vitruvocl.version>")
+        .contains("<junit.version>6.1.3</junit.version>")
         .contains("<artifactId>tools.vitruv.vitruvocl.language</artifactId>", "<version>${vitruvocl.version}</version>")
-        .contains("central-snapshots");
+        .doesNotContain("central-snapshots");
     assertThat(vsumPom).contains("<artifactId>tools.vitruv.vitruvocl.language</artifactId>");
     assertThat(example)
         .contains("import tools.vitruv.dsls.vitruvocl.vitruv.VitruvOclConstraintChecker;")
