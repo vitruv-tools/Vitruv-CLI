@@ -28,7 +28,7 @@ public record ProjectVersions(
     String junit,
     boolean snapshots) {
 
-  /** Latest release of the Vitruv framework, Change, DSL and server artifacts. */
+  /** Latest release of the Vitruv framework, Change, DSL, server and VitruvOCL artifacts. */
   private static final String VITRUV_RELEASE = "4.0.2";
 
   /** Versions of projects without constraints. */
@@ -56,9 +56,9 @@ public record ProjectVersions(
           VITRUV_RELEASE,
           VITRUV_RELEASE,
           VITRUV_RELEASE,
-          "0.1.0-SNAPSHOT",
+          VITRUV_RELEASE,
           "6.1.3",
-          true);
+          false);
 
   /**
    * Returns the versions for a project with or without constraints.
