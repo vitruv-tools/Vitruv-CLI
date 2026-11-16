@@ -13,7 +13,7 @@
 
     <!-- Project Information -->
     <artifactId>tools.vitruv.cli</artifactId>
-    <version>4.0.2</version>
+    <version>4.0.3-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <name>Vitruv CLI</name>
@@ -43,7 +43,7 @@
 
     <properties>
         <vitruv.version>4.0.2</vitruv.version>
-        <vitruv-change.version>4.0.2</vitruv-change.version>
+        <vitruv-change.version>4.0.3-SNAPSHOT</vitruv-change.version>
         <vitruv-dsls.version>4.0.2</vitruv-dsls.version>
         <vitruv-server.version>4.0.2</vitruv-server.version>
         <sonar.host.url>https://sonarcloud.io</sonar.host.url>
