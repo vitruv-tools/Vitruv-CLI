@@ -78,6 +78,16 @@
       </dependency>
       <dependency>
         <groupId>tools.vitruv</groupId>
+        <artifactId>tools.vitruv.change.interaction.model</artifactId>
+        <version>${vitruv-change.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>tools.vitruv</groupId>
+        <artifactId>tools.vitruv.change.utils</artifactId>
+        <version>${vitruv-change.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>tools.vitruv</groupId>
         <artifactId>tools.vitruv.change.propagation</artifactId>
         <version>${vitruv-change.version}</version>
       </dependency>
